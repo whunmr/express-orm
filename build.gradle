@@ -1,0 +1,14 @@
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile group: 'com.google.guava', name: 'guava', version: '14.0'
+        compile group: 'junit', name:'junit', version:'4.8.2'
+    }
+}
+

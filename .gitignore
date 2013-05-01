@@ -1,9 +1,7 @@
-*.class
-*.jar
-*.war
-*.ear
 *.ipr
 *.iml
 *.iws
-
 .gradle/
+out/
+build/
+lib/

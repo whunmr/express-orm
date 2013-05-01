@@ -1,43 +1,32 @@
 package com.thoughtworks;
 
-import com.thoughtworks.exceptions.DBCloseException;
-import com.thoughtworks.exceptions.DBInitException;
-
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DB {
-    private String dbName;
+    private static ThreadLocal<Connection> connection = new ThreadLocal<Connection>();
 
-    public void open(String driver, String url, String user, String password) {
-        checkExistingConnection(dbName);
-        try {
-            Class.forName(driver);
-            Connection connection = DriverManager.getConnection(url, user, password);
-            ConnectionManager.attach(dbName, connection);
-        } catch (Exception e) {
-            throw new DBInitException();
+    public static Connection getConnection() throws IOException, ClassNotFoundException, SQLException {
+        if (connection.get() != null) {
+            return connection.get();
         }
-    }
 
-    public void close() {
-        try {
-            Connection connection = ConnectionManager.getConnections().get(dbName);
-            if (connection == null) {
-                throw new DBCloseException("cannot close connection '" + dbName + "' because it is not available");
-            } else {
-                connection.close();
-                System.out.println("Closed connection: " + connection);
-                ConnectionManager.detach(dbName);
-            }
-        } catch (Exception e) {
-            System.out.println("Could not close connection: " + e);
-        }
-    }
+        InputStream inputStream = DB.class.getResourceAsStream("/config/database.properties");
+        Properties properties = new Properties();
 
-    private void checkExistingConnection(String dbName) {
-        if (ConnectionManager.getConnections().containsKey(dbName)) {
-            throw new DBInitException("Could not open a new connection because existing connection is still on current thread");
-        }
+        properties.load(inputStream);
+        String driver = checkNotNull(properties.getProperty("jdbc.driver"), "jdbc.driver can not be null");
+        String url = checkNotNull(properties.getProperty("jdbc.url"), "jdbc.url can not be null");
+
+        Class.forName(driver);
+        connection.set(DriverManager.getConnection(url, properties));
+
+        return connection.get();
     }
 }

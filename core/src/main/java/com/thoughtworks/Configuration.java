@@ -1,6 +1,7 @@
 package com.thoughtworks;
 
-import com.thoughtworks.exceptions.InitException;import java.io.InputStream;
+import com.thoughtworks.exceptions.InitException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class Configuration {
@@ -12,7 +13,7 @@ public class Configuration {
             try {
                 properties.load(in);
             } catch (Exception e) {
-                throw new Ini InitException
+                //throw new InitException(e);
             }
         }
     }

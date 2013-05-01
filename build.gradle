@@ -9,7 +9,7 @@ allprojects {
     dependencies {
         compile group: 'com.google.guava', name: 'guava', version: '14.0'
         compile group: 'junit', name:'junit', version:'4.8.2'
-        compile group: 'mysql', name:'mysql-connector-java', version: '5.1.24'
+        compile group: 'mysql', name:'mysql-connector-java', version:'5.1.24'
+        testCompile group: 'org.mockito', name: 'mockito-all', version: '1.9.0'
     }
 }
-

@@ -16,7 +16,7 @@ public class MetaDataProvider {
         Statement statement = null;
 
         try {
-            statement = DB.getConnection().createStatement();
+            statement = DB.connection().createStatement();
             ResultSet resultSet = statement.executeQuery(metaDataQuery);
             return resultSet.getMetaData();
         } catch (Exception e) {

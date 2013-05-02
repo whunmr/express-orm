@@ -6,7 +6,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class ModelTest {
+public class ModelTest extends BaseDBTest{
     @Test
     public void should_able_to_save_object_to_table() {
         User user = new User();

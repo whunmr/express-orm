@@ -41,7 +41,7 @@ public class DB {
         }
     }
 
-    public static Connection getConnection() throws IOException, ClassNotFoundException, SQLException {
+    public static Connection connection() throws IOException, ClassNotFoundException, SQLException {
         if (connection.get() != null) {
             return connection.get();
         }

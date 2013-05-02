@@ -12,7 +12,7 @@ public class Model {
 
     public boolean save() {
         try {
-            Connection connection = DB.getConnection();
+            Connection connection = DB.connection();
             Statement statement = connection.createStatement();
             String insertSQL = sqlComposer.getInsertSQL(this);
             System.out.println(insertSQL);

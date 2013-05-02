@@ -25,7 +25,7 @@ public class DBTest {
     public void should_be_able_to_load_connection_parameters_from_database_properties_file()
             throws SQLException, ClassNotFoundException, IOException {
 
-        connection = db.getConnection();
+        connection = db.connection();
         assertThat(connection, is(notNullValue()));
         assertThat(connection.isClosed(), is(false));
     }
@@ -34,8 +34,8 @@ public class DBTest {
     public void should_be_able_to_return_same_connection_for_same_thread()
             throws ClassNotFoundException, IOException, SQLException {
 
-        connection = db.getConnection();
-        Connection connection1 = db.getConnection();
+        connection = db.connection();
+        Connection connection1 = db.connection();
         assertThat(connection, is(sameInstance(connection1)));
     }
 
@@ -43,12 +43,12 @@ public class DBTest {
     public void should_return_different_connection_for_different_thread()
             throws ClassNotFoundException, IOException, SQLException, InterruptedException, ExecutionException {
 
-        connection = db.getConnection();
+        connection = db.connection();
 
         Callable<Connection> task = new Callable<Connection>() {
             @Override
             public Connection call() throws Exception {
-                return db.getConnection();
+                return db.connection();
             }
         };
 

@@ -7,15 +7,14 @@ import java.sql.Connection;
 import java.sql.Statement;
 
 public class Model {
-    private NameGuesser guesser = new DefaultNameGuesser();     //TOOD: use ioc
-    private SqlComposer sqlComposer = new MySQLSqlComposer();   //TOOD: use ioc
+    private NameGuesser guesser = new DefaultNameGuesser();     //TODO: use ioc
+    private SqlComposer sqlComposer = new MySQLSqlComposer();   //TODO: use ioc
 
     public boolean save() {
         try {
             Connection connection = DB.connection();
             Statement statement = connection.createStatement();
             String insertSQL = sqlComposer.getInsertSQL(this);
-            System.out.println(insertSQL);
             statement.execute(insertSQL);
             return true;
         } catch (Exception e) {

@@ -3,6 +3,7 @@ package com.thoughtworks.fixture;
 import com.thoughtworks.Model;
 
 public class User extends Model {
+    private String xx;
     private String email;
 
     public String getEmail() {

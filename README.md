@@ -10,3 +10,12 @@ Object Relational Mapping Framework
 5. add primitive type mapping(int, long, String)
 6. *add one to many relationship mapping  --key step
 7. test for N+1 issue
+
+
+how to using instrument lib
+---------------------------
+0. `gradle clean idea`
+1. in instrument folder, execute `gradle jar`
+2. setup configuration so we can using the instrument agent jar, when running junit test.
+In IntelliJ IDEA,  Run-->Edit Configurations…-->Defaults-->JUnit:
+set "VM Options:" to **-javaagent:./instrument/build/libs/instrument.jar**

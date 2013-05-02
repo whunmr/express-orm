@@ -12,19 +12,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class BaseDBTest {
-    private static boolean schemaLoaded;
+    private static boolean resetDatabase;
 
     @Before
     public void setUp() throws ClassNotFoundException, IOException, SQLException {
-        if (!schemaLoaded) {
-            loadSchema();
-            schemaLoaded = true;
+        if (!resetDatabase) {
+            resetDatabase();
+            resetDatabase = true;
         }
 
         DB.connection().setAutoCommit(false);
     }
 
-    private void loadSchema() throws IOException, SQLException, ClassNotFoundException {
+    protected void resetDatabase() throws IOException, SQLException, ClassNotFoundException {
         URL url = Resources.getResource("dbschema.sql");
         String sqls = Resources.toString(url, Charsets.UTF_8);
 

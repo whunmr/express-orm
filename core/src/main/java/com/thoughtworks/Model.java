@@ -28,4 +28,19 @@ public class Model {
         return guesser.getTableName(getClass().getSimpleName());
     }
 
+    public static <T extends Model> T find(Object primaryKey) {
+        String modelClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+
+        try {
+            return (T) Class.forName(modelClassName).newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

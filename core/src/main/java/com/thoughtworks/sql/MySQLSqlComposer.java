@@ -14,6 +14,7 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class MySQLSqlComposer implements SqlComposer {
+    public static final String ID = "id";
     private MetaDataProvider metaDataProvider = new MetaDataProvider(); //TODO: ioc
     private NameGuesser guesser = new DefaultNameGuesser();             //TODO: ioc
 
@@ -47,7 +48,7 @@ public class MySQLSqlComposer implements SqlComposer {
             field.setAccessible(true);
             return field.get(model);
         } catch (NoSuchFieldException e) {
-            if (!"id".equals(columnName)) {
+            if (!ID.equals(columnName)) {
                 e.printStackTrace();
             }
         } catch (IllegalAccessException e) {

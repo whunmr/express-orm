@@ -1,0 +1,19 @@
+project (':instrument') {
+    dependencies {
+        compile group:'org.javassist', name:'javassist', version:'3.17.1-GA'
+    }
+
+    File bootClassLib;
+    new File(System.getProperty("user.home") + "/.gradle/").eachDirRecurse() { dir ->
+        dir.eachFileMatch(~/javassist-3.17.1-GA.jar/) { file ->
+            println file.absolutePath
+        }
+    }
+
+    jar {
+        manifest {
+            attributes("Premain-Class": "com.thoughtworks.ModelInstrument",
+                       "Boot-Class-Path": bootClassLib.absolutePath)
+        }
+    }
+}

@@ -32,6 +32,11 @@ public class MySQLSqlComposer implements SqlComposer {
         return "SELECT * FROM users where id=1";
     }
 
+    @Override
+    public String getSelectWithWhereSQL(String modelClassName, String criteria) {
+        return "SELECT * FROM users where " + criteria;
+    }
+
     private String buildValues(Model model, List<String> columnNames) {
         List<String> values = newArrayList();
 

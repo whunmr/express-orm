@@ -1,48 +1,25 @@
 package com.thoughtworks;
 
+import com.thoughtworks.binder.ResultSets;
 import com.thoughtworks.metadata.MetaDataProvider;
-import com.thoughtworks.metadata.ModelMetaData;
 import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
 
-import java.lang.reflect.Field;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 
 public class Model {
-    private static NameGuesser guesser = new DefaultNameGuesser();     //TODO: use ioc
-    private static SqlComposer sqlComposer = new MySQLSqlComposer();          //TODO: use ioc
-    private static MetaDataProvider metaDataProvider = new MetaDataProvider(); //TODO: ioc
+    private static NameGuesser guesser = new DefaultNameGuesser();              //TODO: use ioc
+    private static SqlComposer sqlComposer = new MySQLSqlComposer();            //TODO: use ioc
+    private static MetaDataProvider metaDataProvider = new MetaDataProvider();  //TODO: ioc
 
-    public boolean save() {
+    public <T extends Model> T save() {
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();
             statement.execute(sqlComposer.getInsertSQL(this));
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();//TODO
-        } finally {
-            SqlUtil.close(statement);
-        }
-
-        return false;
-    }
-
-    public String getTableName() {
-        return guesser.getTableName(getClass().getSimpleName());
-    }
-
-    public static <T extends Model> T find(Object primaryKey) {
-        String modelClassName = getModelClassName();
-
-        Statement statement = null;
-        try {
-            statement = DB.connection().createStatement();
-            ResultSet rs = statement.executeQuery(sqlComposer.getSelectSQL(modelClassName, primaryKey));
-            return assembleInstanceBy(rs, modelClassName);
+            //TODO: update primary key value
+            return (T)this;
         } catch (Exception e) {
             e.printStackTrace();//TODO
         } finally {
@@ -52,36 +29,23 @@ public class Model {
         return null;
     }
 
-    private static <T extends Model> T assembleInstanceBy(ResultSet rs, String modelClassName) throws SQLException {
-        if (!rs.next()) {
-            return null;
-        }
-
-        T instance = getNewInstance(modelClassName);
-        ModelMetaData metaData = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName));
-        List<String> columns = metaData.getColumnNames();
-        for (String column : columns) {
-            Object value = rs.getObject(column);
-
-            try {
-                Field field = instance.getClass().getDeclaredField(column);
-                field.setAccessible(true);
-                field.set(instance, value);
-            } catch (NoSuchFieldException e) {
-                System.out.println(e.toString());
-                continue;
-            } catch (IllegalAccessException e) {
-            }
-        }
-        return instance;
+    public String getTableName() {
+        return guesser.getTableName(getClass().getSimpleName());
     }
 
-    private static <T extends Model> T getNewInstance(String modelClassName) {
+    public static <T extends Model> T find(Object primaryKey) {
+        String modelClassName = getModelClassName();
+        Statement statement = null;
+
         try {
-            return (T) Class.forName(modelClassName).newInstance();
-        } catch (InstantiationException e) {
-        } catch (IllegalAccessException e) {
-        } catch (ClassNotFoundException e) {
+            String selectSQL = sqlComposer.getSelectSQL(modelClassName, primaryKey);
+            statement = DB.connection().createStatement();
+            ResultSet rs = statement.executeQuery(selectSQL);
+            return ResultSets.assembleInstanceBy(rs, modelClassName);
+        } catch (Exception e) {
+            e.printStackTrace();//TODO
+        } finally {
+            SqlUtil.close(statement);
         }
 
         return null;
@@ -97,5 +61,23 @@ public class Model {
         //[3] = "com.thoughtworks.fixture.User.find(User.java)"
 
         return Thread.currentThread().getStackTrace()[3].getClassName();
+    }
+
+    public static <T extends Model> T where(String criteria) {
+        String modelClassName = getModelClassName();
+        Statement statement = null;
+
+        try {
+            String selectSQL = sqlComposer.getSelectWithWhereSQL(modelClassName, criteria);
+            statement = DB.connection().createStatement();
+            ResultSet rs = statement.executeQuery(selectSQL);
+            return ResultSets.assembleInstanceBy(rs, modelClassName);
+        } catch (Exception e) {
+            e.printStackTrace();//TODO
+        } finally {
+            SqlUtil.close(statement);
+        }
+
+        return null;
     }
 }

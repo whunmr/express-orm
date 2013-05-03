@@ -8,4 +8,6 @@ public interface SqlComposer {
     String getInsertSQL(Model model) throws SQLException;
 
     String getSelectSQL(String modelClassName, Object primaryKey);
+
+    String getSelectWithWhereSQL(String modelClassName, String criteria);
 }

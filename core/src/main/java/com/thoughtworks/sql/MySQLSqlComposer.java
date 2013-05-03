@@ -11,6 +11,7 @@ import com.thoughtworks.metadata.ModelMetaData;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class MySQLSqlComposer implements SqlComposer {
@@ -29,11 +30,13 @@ public class MySQLSqlComposer implements SqlComposer {
 
     @Override
     public String getSelectSQL(String modelClassName, Object primaryKey) {
+        //TODO:
         return "SELECT * FROM users where id=1";
     }
 
     @Override
     public String getSelectWithWhereSQL(String modelClassName, String criteria) {
+        //TODO:
         if (Strings.isNullOrEmpty(criteria)) {
             return "SELECT * FROM users";
         }
@@ -43,10 +46,19 @@ public class MySQLSqlComposer implements SqlComposer {
 
     @Override
     public String getDeleteSQL(String modelClassName, String criteria) {
+        //TODO:
         if (Strings.isNullOrEmpty(criteria)) {
             return "DELETE FROM users";
         }
         return "DELETE FROM users WHERE " + criteria;
+    }
+
+    @Override
+    public String getCountSQL(String modelClassName) {
+        checkNotNull(modelClassName);
+
+        String tableName = guesser.getTableName(modelClassName);
+        return "SELECT COUNT(*) FROM " + tableName;
     }
 
     private String buildValues(Model model, List<String> columnNames) {

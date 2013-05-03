@@ -58,13 +58,26 @@ public class Model {
         return executeSingleObjectQuery(modelName(), sql);
     }
 
+    public static int count() throws SQLException {
+        String countSQL = sqlComposer.getCountSQL(modelName());
+        QueryResult queryResult = getQueryResult(countSQL);
+
+        try {
+            ResultSet resultSet = queryResult.getResultSet();
+            resultSet.next();
+            return Integer.valueOf(resultSet.getObject(1).toString());
+        } finally {
+            queryResult.close();
+        }
+    }
+
     public static int delete_all() {
         return delete_all(null);
     }
 
     public static int delete_all(String criteria) {
-        String sql = sqlComposer.getDeleteSQL(modelName(), criteria);
-        return executeUpdate(sql);
+        String deleteAllSQL = sqlComposer.getDeleteSQL(modelName(), criteria);
+        return executeUpdate(deleteAllSQL);
     }
 
     public static int delete(Object... primaryKeys) {
@@ -86,14 +99,16 @@ public class Model {
     }
 
     private static <T extends Model> T executeSingleObjectQuery(String modelClassName, String querySQL) throws SQLException {
-        Statement statement = null;
-        try {
-            statement = DB.connection().createStatement();
-            ResultSet resultSet = statement.executeQuery(querySQL);
-            return ResultSets.assembleInstanceBy(resultSet, modelClassName);
-        } finally {
-            SqlUtil.close(statement);
-        }
+        QueryResult queryResult = getQueryResult(querySQL);
+        T instance = ResultSets.assembleInstanceBy(queryResult.getResultSet(), modelClassName);
+        queryResult.close();
+        return instance;
+    }
+
+    private static QueryResult getQueryResult(String querySQL) throws SQLException {
+        Statement statement = DB.connection().createStatement();
+        ResultSet resultSet = statement.executeQuery(querySQL);
+        return new QueryResult(resultSet, statement);
     }
 
     private static <T extends Model> List<T> executeObjectListQuery(String modelClassName, String sql) throws SQLException {
@@ -133,5 +148,24 @@ public class Model {
         }
 
         throw new IllegalStateException("Please make sure using the instrument.jar as -javaagent of the running JVM.");
+    }
+
+    static class QueryResult {
+        private final ResultSet resultSet;
+        private final Statement statement;
+
+        QueryResult(ResultSet resultSet, Statement statement) {
+            this.resultSet = resultSet;
+            this.statement = statement;
+        }
+
+        public ResultSet getResultSet() {
+            return resultSet;
+        }
+
+        void close() {
+            SqlUtil.close(resultSet);
+            SqlUtil.close(statement);
+        }
     }
 }

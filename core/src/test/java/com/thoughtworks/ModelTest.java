@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class ModelTest extends BaseDBTest{
@@ -55,27 +55,26 @@ public class ModelTest extends BaseDBTest{
 
         User userInDB = User.find(1);
 
-        assertThat(userInDB.firstName, is(user.firstName));
-        assertThat(userInDB.email, is(user.email));
+        assertThat(userInDB, equalTo(user));
     }
 
     @Test
     public void should_able_to_find_object_by_where_clause() throws SQLException {
         User userInDB = User.where("email = 'a@a.a'");
-
-        assertThat(userInDB.firstName, is(userA.firstName));
-        assertThat(userInDB.email, is(userA.email));
+        assertThat(userInDB, equalTo(userA));
     }
 
     @Test
     public void should_able_to_find_record_object_by_sql() throws SQLException {
         User userInDB = User.find_by_sql("SELECT * FROM users WHERE email = 'a@a.a'");
-        assertThat(userInDB.firstName, is(userA.firstName));
-        assertThat(userInDB.email, is(userA.email));
+        assertThat(userInDB, equalTo(userA));
     }
 
     @Test
-    public void should_able_to_get_row_count_in_table() {
+    public void should_able_to_get_row_count_in_table() throws SQLException {
+        int recordsCount = User.count();
+
+        assertThat(recordsCount, is(User.<User>find_all().size()));
     }
 
     @Test

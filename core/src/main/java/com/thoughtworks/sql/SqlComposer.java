@@ -10,4 +10,6 @@ public interface SqlComposer {
     String getSelectWithWhereSQL(String modelClassName, String criteria);
 
     String getDeleteSQL(String modelClassName, String criteria);
+
+    String getCountSQL(String modelClassName);
 }

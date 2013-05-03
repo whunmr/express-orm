@@ -4,28 +4,43 @@ import com.thoughtworks.DefaultNameGuesser;
 import com.thoughtworks.Model;
 import com.thoughtworks.NameGuesser;
 import com.thoughtworks.metadata.MetaDataProvider;
-import com.thoughtworks.metadata.ModelMetaData;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 public class ResultSets {
     private static NameGuesser guesser = new DefaultNameGuesser();     //TODO: use ioc
     private static MetaDataProvider metaDataProvider = new MetaDataProvider(); //TODO: ioc
 
-    public static <T extends Model> T assembleInstanceBy(ResultSet rs, String modelClassName) throws SQLException {
-        if (!rs.next()) {
+    public static <T extends Model> List<T> assembleInstanceListBy(ResultSet resultSet, String modelClassName) throws SQLException {
+        List<T> objList = newArrayList();
+        List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();
+
+        while (resultSet.next()) {
+            objList.add(ResultSets.<T>assembleInstanceFrom(resultSet, columns, modelClassName));
+        }
+
+        return objList;
+    }
+
+    public static <T extends Model> T assembleInstanceBy(ResultSet resultSet, String modelClassName) throws SQLException {
+        if (!resultSet.next()) {
             return null;
         }
 
-        T instance = getNewInstance(modelClassName);
-        ModelMetaData metaData = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName));
-        List<String> columns = metaData.getColumnNames();
-        for (String column : columns) {
+        List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();
+        return assembleInstanceFrom(resultSet, columns, modelClassName);
+    }
 
-            Object value = rs.getObject(column);
+    private static <T extends Model> T assembleInstanceFrom(ResultSet resultSet, List<String> columns, String modelClassName) throws SQLException {
+        T instance = getNewInstance(modelClassName);
+
+        for (String column : columns) {
+            Object value = resultSet.getObject(column);
 
             try {
                 Field field = instance.getClass().getDeclaredField(guesser.getFieldName(column));
@@ -37,6 +52,7 @@ public class ResultSets {
             } catch (IllegalAccessException e) {
             }
         }
+
         return instance;
     }
 

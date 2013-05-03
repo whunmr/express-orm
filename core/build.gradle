@@ -1,2 +1,5 @@
 project (':core') {
+    dependencies {
+        compile(project(':instrument'))
+    }
 }

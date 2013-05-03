@@ -11,17 +11,28 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class BaseDBTest {
-    private static boolean resetDatabase;
+    private static boolean isDBRested;
 
     @Before
     public void setUp() throws ClassNotFoundException, IOException, SQLException {
-        if (!resetDatabase) {
+        if (!isDBRested) {
             resetDatabase();
-            resetDatabase = true;
+            isDBRested = true;
         }
 
         DB.connection().setAutoCommit(false);
+    }
+
+    protected void truncateTable(String tableName) {
+        checkNotNull(tableName);
+        try {
+            DB.connection().createStatement().execute("TRUNCATE TABLE " + tableName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void resetDatabase() throws IOException, SQLException, ClassNotFoundException {
@@ -40,7 +51,7 @@ public class BaseDBTest {
     }
 
     @After
-    public void after() throws ClassNotFoundException, IOException, SQLException {
+    public void tearDown() throws ClassNotFoundException, IOException, SQLException {
         DB.connection().rollback();
     }
 }

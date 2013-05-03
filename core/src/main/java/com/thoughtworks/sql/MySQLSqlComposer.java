@@ -1,6 +1,7 @@
 package com.thoughtworks.sql;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.thoughtworks.DefaultNameGuesser;
 import com.thoughtworks.Model;
 import com.thoughtworks.NameGuesser;
@@ -8,7 +9,6 @@ import com.thoughtworks.metadata.MetaDataProvider;
 import com.thoughtworks.metadata.ModelMetaData;
 
 import java.lang.reflect.Field;
-import java.sql.SQLException;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -18,7 +18,7 @@ public class MySQLSqlComposer implements SqlComposer {
     private MetaDataProvider metaDataProvider = new MetaDataProvider(); //TODO: ioc
     private NameGuesser guesser = new DefaultNameGuesser();             //TODO: ioc
 
-    public String getInsertSQL(Model model) throws SQLException {
+    public String getInsertSQL(Model model) {
         ModelMetaData metaData = metaDataProvider.getMetaDataOf(model.getTableName());
 
         List<String> columns = metaData.getColumnNames();
@@ -34,7 +34,19 @@ public class MySQLSqlComposer implements SqlComposer {
 
     @Override
     public String getSelectWithWhereSQL(String modelClassName, String criteria) {
+        if (Strings.isNullOrEmpty(criteria)) {
+            return "SELECT * FROM users";
+        }
+
         return "SELECT * FROM users where " + criteria;
+    }
+
+    @Override
+    public String getDeleteSQL(String modelClassName, String criteria) {
+        if (Strings.isNullOrEmpty(criteria)) {
+            return "DELETE FROM users";
+        }
+        return "DELETE FROM users WHERE " + criteria;
     }
 
     private String buildValues(Model model, List<String> columnNames) {

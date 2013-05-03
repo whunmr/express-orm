@@ -2,12 +2,12 @@ package com.thoughtworks.sql;
 
 import com.thoughtworks.Model;
 
-import java.sql.SQLException;
-
 public interface SqlComposer {
-    String getInsertSQL(Model model) throws SQLException;
+    String getInsertSQL(Model model);
 
     String getSelectSQL(String modelClassName, Object primaryKey);
 
     String getSelectWithWhereSQL(String modelClassName, String criteria);
+
+    String getDeleteSQL(String modelClassName, String criteria);
 }

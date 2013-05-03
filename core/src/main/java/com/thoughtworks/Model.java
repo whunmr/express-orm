@@ -1,7 +1,6 @@
 package com.thoughtworks;
 
 import com.thoughtworks.binder.ResultSets;
-import com.thoughtworks.metadata.MetaDataProvider;
 import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
 
@@ -10,12 +9,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class Model {
     private static NameGuesser guesser = new DefaultNameGuesser();              //TODO: use ioc
     private static SqlComposer sqlComposer = new MySQLSqlComposer();            //TODO: use ioc
-    private static MetaDataProvider metaDataProvider = new MetaDataProvider();  //TODO: ioc
 
-    public <T extends Model> T save() {
+    public <T extends Model> T save() throws SQLException {
         //TODO: model has primary key then update
         String insertSQL = sqlComposer.getInsertSQL(this);
 
@@ -25,13 +25,9 @@ public class Model {
             statement.executeUpdate(insertSQL);
             //TODO: update primary key value
             return (T)this;
-        } catch (Exception e) {
-            e.printStackTrace();//TODO
         } finally {
             SqlUtil.close(statement);
         }
-
-        return null;
     }
 
     public static <T extends Model> T find(Object primaryKey) throws SQLException {
@@ -40,7 +36,6 @@ public class Model {
     }
 
     public static <T extends Model> List<T> find_all() throws SQLException {
-        //TODO: to String... criteria
         return find_all(null);
     }
 
@@ -71,31 +66,29 @@ public class Model {
         }
     }
 
-    public static int delete_all() {
+    public static int delete_all() throws SQLException {
         return delete_all(null);
     }
 
-    public static int delete_all(String criteria) {
+    public static int delete_all(String criteria) throws SQLException {
         String deleteAllSQL = sqlComposer.getDeleteSQL(modelName(), criteria);
         return executeUpdate(deleteAllSQL);
     }
 
-    public static int delete(Object... primaryKeys) {
-        return 0;
+    public static int delete(Object... primaryKeys) throws SQLException {
+        checkNotNull(primaryKeys);
+        String deleteInSQL = sqlComposer.getDeleteInSQL(modelName(), primaryKeys);
+        return executeUpdate(deleteInSQL);
     }
 
-    private static int executeUpdate(String sql) {
+    private static int executeUpdate(String sql) throws SQLException {
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();
             return statement.executeUpdate(sql);
-        } catch (Exception e) {
-            e.printStackTrace();//TODO
         } finally {
             SqlUtil.close(statement);
         }
-
-        return 0;
     }
 
     private static <T extends Model> T executeSingleObjectQuery(String modelClassName, String querySQL) throws SQLException {
@@ -127,13 +120,6 @@ public class Model {
     }
 
     private static String modelName() {
-        //After concrete model class being instrumented, there will be delegate method in
-        //the concrete model class. (e.g. save/find)
-        //so the call stack trace here will be:
-        //[0] = "java.lang.Thread.getStackTrace(Thread.java:1503)"
-        //[1] = "com.thoughtworks.Model.getModelClassName(Model.java:52)"
-        //[2] = "com.thoughtworks.Model.find(Model.java:32)"
-        //[3] = "com.thoughtworks.fixture.User.find(User.java)"
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement stackTraceElement : stackTrace) {
             String className = stackTraceElement.getClassName();
@@ -147,7 +133,8 @@ public class Model {
             }
         }
 
-        throw new IllegalStateException("Please make sure using the instrument.jar as -javaagent of the running JVM.");
+        throw new IllegalStateException("Please make sure using the instrument.jar as -javaagent of the running JVM. " +
+                "refer https://github.com/whunmr/express-orm/blob/master/README.md for details");
     }
 
     static class QueryResult {

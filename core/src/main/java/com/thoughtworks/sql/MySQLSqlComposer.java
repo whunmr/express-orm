@@ -30,27 +30,26 @@ public class MySQLSqlComposer implements SqlComposer {
 
     @Override
     public String getSelectSQL(String modelClassName, Object primaryKey) {
-        //TODO:
-        return "SELECT * FROM users where id=1";
+        return "SELECT * FROM " + guesser.getTableName(modelClassName) + " WHERE id=" + primaryKey.toString();
     }
 
     @Override
     public String getSelectWithWhereSQL(String modelClassName, String criteria) {
-        //TODO:
+        return getWhereSQL(modelClassName, criteria, "SELECT * FROM %s");
+    }
+
+    private String getWhereSQL(String modelClassName, String criteria, String basicSQL) {
+        String selectAllSQL = String.format(basicSQL, guesser.getTableName(modelClassName));
         if (Strings.isNullOrEmpty(criteria)) {
-            return "SELECT * FROM users";
+            return selectAllSQL;
         }
 
-        return "SELECT * FROM users where " + criteria;
+        return String.format("%s WHERE %s", selectAllSQL, criteria);
     }
 
     @Override
     public String getDeleteSQL(String modelClassName, String criteria) {
-        //TODO:
-        if (Strings.isNullOrEmpty(criteria)) {
-            return "DELETE FROM users";
-        }
-        return "DELETE FROM users WHERE " + criteria;
+       return getWhereSQL(modelClassName, criteria, "DELETE FROM %s");
     }
 
     @Override
@@ -59,6 +58,12 @@ public class MySQLSqlComposer implements SqlComposer {
 
         String tableName = guesser.getTableName(modelClassName);
         return "SELECT COUNT(*) FROM " + tableName;
+    }
+
+    @Override
+    public String getDeleteInSQL(String modelClassName, Object... primaryKeys) {
+        String tableName = guesser.getTableName(modelClassName);
+        return "DELETE FROM " + tableName + " WHERE id IN (" + Joiner.on(",").join(primaryKeys) + ")";
     }
 
     private String buildValues(Model model, List<String> columnNames) {

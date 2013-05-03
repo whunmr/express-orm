@@ -25,5 +25,4 @@ public class ModelMetaData {
 
         return columns;
     }
-
 }

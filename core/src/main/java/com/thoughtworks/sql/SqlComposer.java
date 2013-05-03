@@ -12,4 +12,6 @@ public interface SqlComposer {
     String getDeleteSQL(String modelClassName, String criteria);
 
     String getCountSQL(String modelClassName);
+
+    String getDeleteInSQL(String modelClassName, Object... primaryKeys);
 }

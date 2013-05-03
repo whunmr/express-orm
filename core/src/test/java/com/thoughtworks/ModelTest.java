@@ -36,7 +36,7 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_save_object_to_table() {
+    public void should_able_to_save_object_to_table() throws SQLException {
         User user = createUser("Z", "z@z.z");
         User savedUser = user.save();
         assertThat(savedUser, is(sameInstance(user)));
@@ -79,21 +79,28 @@ public class ModelTest extends BaseDBTest{
 
     @Test
     public void should_able_to_delete_record_by_primary_key() throws ClassNotFoundException, IOException, SQLException {
-        int userInDB = User.delete(1);
+        assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
+        int rowDeleted = User.delete(1);
+        assertThat(rowDeleted, equalTo(1));
+        assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
     }
 
     @Test
-    public void should_able_to_delete_multiple_records_by_primary_key_array() {
-        //delete ([1, 2, 3])
+    public void should_able_to_delete_multiple_records_by_primary_key_array() throws SQLException {
+        assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
+        User.delete(1, 3);
+        assertThat(User.<User>find_all(), containsInAnyOrder(userB));
     }
 
     @Test
-    public void should_able_to_delete_record_by_where_criteria() {
-        //delete_all
+    public void should_able_to_delete_record_by_where_criteria() throws SQLException {
+        assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
+        User.delete_all("email = 'a@a.a'");
+        assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
     }
 
     @Test
-    public void should_able_to_delete_all_records_by_empty_where_criteria() {
+    public void should_able_to_delete_all_records_by_empty_where_criteria() throws SQLException {
         User.delete_all();
     }
 

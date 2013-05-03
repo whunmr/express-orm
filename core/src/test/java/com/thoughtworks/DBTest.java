@@ -19,13 +19,12 @@ import static org.junit.Assert.assertThat;
 
 public class DBTest {
     private Connection connection;
-    private DB db = new DB();
 
     @Test
     public void should_be_able_to_load_connection_parameters_from_database_properties_file()
             throws SQLException, ClassNotFoundException, IOException {
 
-        connection = db.connection();
+        connection = DB.connection();
         assertThat(connection, is(notNullValue()));
         assertThat(connection.isClosed(), is(false));
     }
@@ -34,8 +33,8 @@ public class DBTest {
     public void should_be_able_to_return_same_connection_for_same_thread()
             throws ClassNotFoundException, IOException, SQLException {
 
-        connection = db.connection();
-        Connection connection1 = db.connection();
+        connection = DB.connection();
+        Connection connection1 = DB.connection();
         assertThat(connection, is(sameInstance(connection1)));
     }
 
@@ -43,16 +42,18 @@ public class DBTest {
     public void should_return_different_connection_for_different_thread()
             throws ClassNotFoundException, IOException, SQLException, InterruptedException, ExecutionException {
 
-        connection = db.connection();
+        connection = DB.connection();
 
         Callable<Connection> task = new Callable<Connection>() {
             @Override
             public Connection call() throws Exception {
-                return db.connection();
+                return DB.connection();
             }
         };
 
-        List<Future<Connection>> futures = Executors.newFixedThreadPool(1).invokeAll(Arrays.asList(task));
+        @SuppressWarnings("unchecked")
+        List<Callable<Connection>> tasks = Arrays.asList(task);
+        List<Future<Connection>> futures = Executors.newFixedThreadPool(1).invokeAll(tasks);
         Connection connectionInNewThread = futures.get(0).get();
 
         assertThat(connection, not(sameInstance(connectionInNewThread)));

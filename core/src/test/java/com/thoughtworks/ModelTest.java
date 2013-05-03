@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.fixture.Misc;
 import com.thoughtworks.fixture.User;
 import org.junit.After;
 import org.junit.Before;
@@ -9,13 +10,13 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class ModelTest extends BaseDBTest{
-
     private User userA;
     private User userB;
     private User userC;
@@ -102,6 +103,36 @@ public class ModelTest extends BaseDBTest{
     @Test
     public void should_able_to_delete_all_records_by_empty_where_criteria() throws SQLException {
         User.delete_all();
+    }
+
+    /////////////////////////////////////////////////////////
+
+    @Test
+    public void should_able_to_mapping_primitive_members_to_db_columns() throws SQLException {
+        truncateTable("miscs");
+        Misc misc = new Misc();
+        misc.boolValue = true;
+        misc.charValue = 'c';
+        misc.byteValue = 4;
+        misc.shortValue = 8;
+        misc.integerValue = 15;
+        misc.longValue = 16L;
+        misc.floatValue = 23.0f;
+        misc.doubleValue = 42.0d;
+        misc.stringValue = "LOST";
+
+        misc.primitiveIntValue = 4;
+        misc.primitiveDoubleValue = 8;
+        misc.primitiveFloatValue = 15.0f;
+        misc.primitiveBooleanValue = true;
+        misc.primitiveShortValue = 23;
+        misc.primitiveLongValue = 42L;
+        misc.primitiveByteValue = 0;
+
+        misc.save();
+
+        Misc miscInDB = Misc.find(1);
+        assertThat(miscInDB, equalTo(misc));
     }
 
     private User createUser(String firstName, String email) {

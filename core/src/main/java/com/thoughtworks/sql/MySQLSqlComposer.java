@@ -25,7 +25,7 @@ public class MySQLSqlComposer implements SqlComposer {
         List<String> columns = metaData.getColumnNames();
         String values = buildValues(model, columns);
 
-        return String.format("INSERT INTO users (%s) values (%s)", Joiner.on(",").join(columns), values);
+        return String.format("INSERT INTO %s (%s) values (%s)", model.getTableName(), Joiner.on(",").join(columns), values);
     }
 
     @Override
@@ -78,7 +78,16 @@ public class MySQLSqlComposer implements SqlComposer {
     }
 
     private String getFieldStringValue(Object fieldValue) {
-        return fieldValue == null ? "null" : "'" + fieldValue.toString() + "'";
+        if (fieldValue == null) {
+            return "null";
+        }
+
+        Class<? extends Object> fieldClass = fieldValue.getClass();
+        if (fieldClass == Boolean.class || fieldClass == boolean.class) {
+            return Boolean.valueOf(fieldValue.toString()) ? "1" : "0";
+        }
+
+        return "'" + fieldValue.toString() + "'";
     }
 
     private Object getFieldValue(Model model, String columnName) {

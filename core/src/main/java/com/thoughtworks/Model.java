@@ -22,6 +22,7 @@ public class Model {
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();
+            System.out.println(insertSQL);
             statement.executeUpdate(insertSQL);
             //TODO: update primary key value
             return (T)this;

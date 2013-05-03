@@ -1,5 +1,10 @@
 project (':core') {
     dependencies {
         compile(project(':instrument'))
+        compile fileTree(dir: 'libs', include: 'express-ioc.jar')
+    }
+
+    test {
+        jvmArgs '-javaagent:../instrument/build/libs/instrument.jar'
     }
 }

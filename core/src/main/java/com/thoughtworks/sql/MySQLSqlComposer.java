@@ -1,13 +1,13 @@
 package com.thoughtworks.sql;
 
+import com.google.common.base.Joiner;
 import com.thoughtworks.DefaultNameGuesser;
 import com.thoughtworks.Model;
 import com.thoughtworks.NameGuesser;
 import com.thoughtworks.metadata.MetaDataProvider;
-import com.google.common.base.Joiner;
+import com.thoughtworks.metadata.ModelMetaData;
 
 import java.lang.reflect.Field;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -19,15 +19,20 @@ public class MySQLSqlComposer implements SqlComposer {
     private NameGuesser guesser = new DefaultNameGuesser();             //TODO: ioc
 
     public String getInsertSQL(Model model) throws SQLException {
-        ResultSetMetaData metaData = metaDataProvider.getMetaDataOf(model);
+        ModelMetaData metaData = metaDataProvider.getMetaDataOf(model.getTableName());
 
-        List<String> columns = getColumnNames(metaData);
-        String values = buildValues(model, metaData, columns);
+        List<String> columns = metaData.getColumnNames();
+        String values = buildValues(model, columns);
 
         return String.format("INSERT INTO users (%s) values (%s)", Joiner.on(",").join(columns), values);
     }
 
-    private String buildValues(Model model, ResultSetMetaData metaData, List<String> columnNames) {
+    @Override
+    public String getSelectSQL(String modelClassName, Object primaryKey) {
+        return "SELECT * FROM users where id=1";
+    }
+
+    private String buildValues(Model model, List<String> columnNames) {
         List<String> values = newArrayList();
 
         for (int i = 0; i < columnNames.size(); i++) {
@@ -56,16 +61,5 @@ public class MySQLSqlComposer implements SqlComposer {
         }
 
         return null;
-    }
-
-    private List<String> getColumnNames(ResultSetMetaData metaData) throws SQLException {
-        List<String> columns= newArrayList();
-        int columnCount = metaData.getColumnCount();
-
-        for (int i = 1; i <= columnCount; i++) {
-            columns.add(metaData.getColumnName(i));
-        }
-
-        return columns;
     }
 }

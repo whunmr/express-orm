@@ -31,6 +31,7 @@ public class ModelTest extends BaseDBTest{
 
         User userInDB = User.find(1);
         assertThat(userInDB, notNullValue());
+        assertThat(userInDB.getEmail(), is("a@b.c"));
     }
 
 }

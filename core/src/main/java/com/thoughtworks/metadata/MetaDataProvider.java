@@ -1,28 +1,27 @@
 package com.thoughtworks.metadata;
 
 import com.thoughtworks.DB;
-import com.thoughtworks.Model;
 import com.thoughtworks.SqlUtil;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 
 public class MetaDataProvider {
     public static final String META_DATE_QUERY = "SELECT * FROM %s LIMIT 1";
 
-    public ResultSetMetaData getMetaDataOf(Model model) {
-        String metaDataQuery = String.format(META_DATE_QUERY, model.getTableName());
+    public ModelMetaData getMetaDataOf(String tableName) {
+        //TODO: add cache
+        String metaDataQuery = String.format(META_DATE_QUERY, tableName);
         Statement statement = null;
 
         try {
             statement = DB.connection().createStatement();
             ResultSet resultSet = statement.executeQuery(metaDataQuery);
-            return resultSet.getMetaData();
+            return new ModelMetaData(resultSet.getMetaData());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            SqlUtil.safeClose(statement);
+            SqlUtil.close(statement);
         }
 
         return null;

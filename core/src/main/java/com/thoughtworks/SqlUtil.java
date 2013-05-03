@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class SqlUtil {
-    public static void safeClose(Statement statement) {
+    public static void close(Statement statement) {
         if (statement != null) {
             try {
                 statement.close();

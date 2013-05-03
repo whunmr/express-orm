@@ -42,7 +42,7 @@ public class DB {
     }
 
     public static Connection connection() throws IOException, ClassNotFoundException, SQLException {
-        if (connection.get() != null) {
+        if (connection.get() != null && !connection.get().isClosed()) {
             return connection.get();
         }
 

@@ -6,7 +6,10 @@ public class DefaultNameGuesser implements NameGuesser {
 
     @Override
     public String getTableName(String className) {
-        return underscore(checkNotNull(className));
+        checkNotNull(className);
+
+        String classNameWithoutPackage = className.replaceAll("(.*\\.)", "");
+        return underscore(classNameWithoutPackage);
     }
 
     private String underscore(String camel) {

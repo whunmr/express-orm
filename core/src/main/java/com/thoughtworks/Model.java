@@ -29,7 +29,9 @@ public class Model {
     }
 
     public static <T extends Model> T find(Object primaryKey) {
-        String modelClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+        String modelClassName = getModelClassName();
+
+
 
         try {
             return (T) Class.forName(modelClassName).newInstance();
@@ -42,5 +44,17 @@ public class Model {
         }
 
         return null;
+    }
+
+    private static String getModelClassName() {
+        //After concrete model class being instrumented, there will be delegate method in
+        //the concrete model class. (e.g. save/find)
+        //so the call stack trace here will be:
+        //[0] = "java.lang.Thread.getStackTrace(Thread.java:1503)"
+        //[1] = "com.thoughtworks.Model.getModelClassName(Model.java:52)"
+        //[2] = "com.thoughtworks.Model.find(Model.java:32)"
+        //[3] = "com.thoughtworks.fixture.User.find(User.java)"
+
+        return Thread.currentThread().getStackTrace()[3].getClassName();
     }
 }

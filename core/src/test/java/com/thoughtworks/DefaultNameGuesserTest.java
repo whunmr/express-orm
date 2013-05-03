@@ -15,10 +15,15 @@ public class DefaultNameGuesserTest {
     }
 
     @Test
-    public void should_return_correct_underscored_tableName() {
+    public void should_able_to_get_table_name_from_simple_class_name() {
         assertThat(guesser.getTableName("User"), is("users"));
         assertThat(guesser.getTableName("UserComment"), is("user_comments"));
         assertThat(guesser.getTableName("UserCommentTag"), is("user_comment_tags"));
+    }
+
+    @Test
+    public void should_able_to_get_table_name_from_class_name_with_package() {
+        assertThat(guesser.getTableName("com.thoughtworks.fixture.User"), is("users"));
     }
 
     @Test
@@ -28,6 +33,4 @@ public class DefaultNameGuesserTest {
         assertThat(guesser.getFieldName("last_name"), is("lastName"));
         assertThat(guesser.getFieldName("f_name"), is("fName"));
     }
-
-
 }

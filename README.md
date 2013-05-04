@@ -3,7 +3,7 @@ expresss-orm
 
 Object Relational Mapping Framework
 
-1. DB connection in singleton mode(Registry)
+1. DB connection
 2. *setup table-class mapping-rule(like Rails, User to Users) --key step
 3. *convert save() or findById() to SQL  --key step
 4. convention over configration(like Rails, without setter and getter)

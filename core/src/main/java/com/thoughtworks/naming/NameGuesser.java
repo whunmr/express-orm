@@ -1,4 +1,4 @@
-package com.thoughtworks;
+package com.thoughtworks.naming;
 
 public interface NameGuesser {
     String getTableName(String className);

@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.naming.DefaultNameGuesser;
 import org.junit.Before;
 import org.junit.Test;
 

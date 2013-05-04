@@ -1,9 +1,9 @@
-package com.thoughtworks.binder;
+package com.thoughtworks.util;
 
 import com.expressioc.utility.ClassUtility;
-import com.thoughtworks.DefaultNameGuesser;
+import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.Model;
-import com.thoughtworks.NameGuesser;
+import com.thoughtworks.naming.NameGuesser;
 import com.thoughtworks.metadata.MetaDataProvider;
 
 import java.lang.reflect.Field;

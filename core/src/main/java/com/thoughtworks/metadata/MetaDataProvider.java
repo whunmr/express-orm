@@ -1,7 +1,7 @@
 package com.thoughtworks.metadata;
 
 import com.thoughtworks.DB;
-import com.thoughtworks.SqlUtil;
+import com.thoughtworks.util.SqlUtil;
 
 import java.sql.ResultSet;
 import java.sql.Statement;

@@ -20,8 +20,8 @@ public class Misc extends Model {
     public short primitiveShortValue;
     public long primitiveLongValue;
     public byte primitiveByteValue;
-    //TODO: enum type support
 
+    public DayEnum day;
 
     @Override
     public boolean equals(Object o) {

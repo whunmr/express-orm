@@ -1,4 +1,4 @@
-package com.thoughtworks;
+package com.thoughtworks.util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

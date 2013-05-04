@@ -1,4 +1,4 @@
-package com.thoughtworks;
+package com.thoughtworks.dialects;
 
 import com.thoughtworks.exceptions.InitException;
 import java.io.InputStream;

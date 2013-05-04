@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.fixture.DayEnum;
 import com.thoughtworks.fixture.Misc;
 import com.thoughtworks.fixture.User;
 import org.junit.After;
@@ -128,6 +129,8 @@ public class ModelTest extends BaseDBTest{
         misc.primitiveShortValue = 23;
         misc.primitiveLongValue = 42L;
         misc.primitiveByteValue = 0;
+
+        misc.day = DayEnum.MONDAY;
 
         misc.save();
 

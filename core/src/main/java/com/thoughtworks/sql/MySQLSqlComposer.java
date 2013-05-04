@@ -2,9 +2,9 @@ package com.thoughtworks.sql;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.thoughtworks.DefaultNameGuesser;
+import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.Model;
-import com.thoughtworks.NameGuesser;
+import com.thoughtworks.naming.NameGuesser;
 import com.thoughtworks.metadata.MetaDataProvider;
 import com.thoughtworks.metadata.ModelMetaData;
 

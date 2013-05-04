@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.dialects.ConnectionManager;
 import com.thoughtworks.exceptions.DBInitException;
 
 import java.io.InputStream;

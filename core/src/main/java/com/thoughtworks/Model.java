@@ -1,8 +1,11 @@
 package com.thoughtworks;
 
-import com.thoughtworks.binder.ResultSets;
+import com.thoughtworks.naming.DefaultNameGuesser;
+import com.thoughtworks.naming.NameGuesser;
+import com.thoughtworks.util.ResultSets;
 import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
+import com.thoughtworks.util.SqlUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

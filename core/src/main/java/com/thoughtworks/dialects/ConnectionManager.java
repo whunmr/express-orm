@@ -1,4 +1,4 @@
-package com.thoughtworks;
+package com.thoughtworks.dialects;
 
 import com.sun.jdi.InternalException;
 

@@ -1,4 +1,4 @@
-package com.thoughtworks;
+package com.thoughtworks.naming;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

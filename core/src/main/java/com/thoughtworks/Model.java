@@ -1,8 +1,8 @@
 package com.thoughtworks;
 
+import com.expressioc.utility.ClassUtility;
 import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.naming.NameGuesser;
-import com.thoughtworks.util.ResultSets;
 import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
 import com.thoughtworks.util.SqlUtil;
@@ -13,29 +13,31 @@ import java.sql.Statement;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 
 public class Model {
     private static NameGuesser guesser = new DefaultNameGuesser();              //TODO: use ioc
-    private static SqlComposer sqlComposer = new MySQLSqlComposer();            //TODO: use ioc
+    private static SqlComposer sql = new MySQLSqlComposer();            //TODO: use ioc
+
+    private static Model STATIC_INSTANCE = null;
+
+    private int id;
+    private List<Class<? extends Model>> eagerLoadingList = newArrayList();
 
     public <T extends Model> T save() throws SQLException {
-        //TODO: model has primary key then update
-        String insertSQL = sqlComposer.getInsertSQL(this);
-
-        Statement statement = null;
-        try {
-            statement = DB.connection().createStatement();
-            System.out.println(insertSQL);
-            statement.executeUpdate(insertSQL);
-            //TODO: update primary key value
-            return (T)this;
-        } finally {
-            SqlUtil.close(statement);
+        boolean isNewRecord = this.id == 0;
+        if (isNewRecord) {
+            executeUpdate(sql.getInsertSQL(this));
+            this.id = getIntegerQueryResult(sql.getLastInsertIdSQL());
+        } else {
+            executeUpdate(sql.getUpdateSQL(this));
         }
+
+        return (T)this;
     }
 
     public static <T extends Model> T find(Object primaryKey) throws SQLException {
-        String sql = sqlComposer.getSelectSQL(modelName(), primaryKey);
+        String sql = Model.sql.getSelectSQL(modelName(), primaryKey);
         return executeSingleObjectQuery(modelName(), sql);
     }
 
@@ -44,7 +46,7 @@ public class Model {
     }
 
     public static <T extends Model> List<T> find_all(String criteria) throws SQLException {
-        String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
+        String sql = Model.sql.getSelectWithWhereSQL(modelName(), criteria);
         return executeObjectListQuery(modelName(), sql);
     }
 
@@ -53,12 +55,16 @@ public class Model {
     }
 
     public static <T extends Model> T where(String criteria) throws SQLException {
-        String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
+        String sql = Model.sql.getSelectWithWhereSQL(modelName(), criteria);
         return executeSingleObjectQuery(modelName(), sql);
     }
 
     public static int count() throws SQLException {
-        String countSQL = sqlComposer.getCountSQL(modelName());
+        String countSQL = sql.getCountSQL(modelName());
+        return getIntegerQueryResult(countSQL);
+    }
+
+    private static int getIntegerQueryResult(String countSQL) throws SQLException {
         QueryResult queryResult = getQueryResult(countSQL);
 
         try {
@@ -75,13 +81,13 @@ public class Model {
     }
 
     public static int delete_all(String criteria) throws SQLException {
-        String deleteAllSQL = sqlComposer.getDeleteSQL(modelName(), criteria);
+        String deleteAllSQL = sql.getDeleteSQL(modelName(), criteria);
         return executeUpdate(deleteAllSQL);
     }
 
     public static int delete(Object... primaryKeys) throws SQLException {
         checkNotNull(primaryKeys);
-        String deleteInSQL = sqlComposer.getDeleteInSQL(modelName(), primaryKeys);
+        String deleteInSQL = sql.getDeleteInSQL(modelName(), primaryKeys);
         return executeUpdate(deleteInSQL);
     }
 
@@ -123,7 +129,14 @@ public class Model {
         return guesser.getTableName(getClass().getSimpleName());
     }
 
-    private static String modelName() {
+    public static <T extends Model> Model includes(Class includeClazz) {
+        if (STATIC_INSTANCE == null) {
+            STATIC_INSTANCE = (T) ClassUtility.newInstanceOf(getModelClass());
+        }
+        return STATIC_INSTANCE;
+    }
+
+    private static Class getModelClass() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement stackTraceElement : stackTrace) {
             String className = stackTraceElement.getClassName();
@@ -131,7 +144,7 @@ public class Model {
                 Class<?> clazz = Class.forName(className);
                 boolean isModelClass = clazz != null && !clazz.equals(Model.class) && Model.class.isAssignableFrom(clazz);
                 if (isModelClass) {
-                    return className;
+                    return clazz;
                 }
             } catch (ClassNotFoundException e) {
             }
@@ -139,6 +152,14 @@ public class Model {
 
         throw new IllegalStateException("Please make sure using the instrument.jar as -javaagent of the running JVM. " +
                 "refer https://github.com/whunmr/express-orm/blob/master/README.md for details");
+    }
+
+    private static String modelName() {
+        return getModelClass().getName();
+    }
+
+    public int getId() {
+        return id;
     }
 
     static class QueryResult {

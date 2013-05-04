@@ -2,9 +2,12 @@ package com.thoughtworks.fixture;
 
 import com.thoughtworks.Model;
 
+import java.util.List;
+
 public class User extends Model {
     public String firstName;
     public String email;
+    public List<Article> articles;
 
     @Override
     public boolean equals(Object o) {

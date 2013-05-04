@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.fixture.Article;
 import com.thoughtworks.fixture.DayEnum;
 import com.thoughtworks.fixture.Misc;
 import com.thoughtworks.fixture.User;
@@ -11,17 +12,15 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class ModelTest extends BaseDBTest{
     private User userA;
     private User userB;
     private User userC;
+    private Article article;
 
     @Before
     public void setUp() throws ClassNotFoundException, IOException, SQLException {
@@ -30,12 +29,14 @@ public class ModelTest extends BaseDBTest{
         userA = createUser("A", "a@a.a").save();
         userB = createUser("B", "b@b.b").save();
         userC = createUser("C", "c@c.c").save();
+        article = createArticle(userA.getId()).save();
     }
 
     @After
     public void tearDown() throws ClassNotFoundException, IOException, SQLException {
         super.tearDown();
         User.delete_all();
+        Article.delete_all();
     }
 
     @Test
@@ -43,6 +44,18 @@ public class ModelTest extends BaseDBTest{
         User user = createUser("Z", "z@z.z");
         User savedUser = user.save();
         assertThat(savedUser, is(sameInstance(user)));
+        assertThat(savedUser.getId(), is(greaterThan(0)));
+    }
+
+    @Test
+    public void should_able_to_update_object_by_save_method() throws SQLException {
+        int idBeforeSave = userA.getId();
+        userA.email = "newA@newA.newA";
+
+        userA.save();
+
+        User updatedUserInDB = User.where("email = 'newA@newA.newA'");
+        assertThat(updatedUserInDB, is(equalTo(userA)));
     }
 
     @Test
@@ -59,6 +72,16 @@ public class ModelTest extends BaseDBTest{
         User userInDB = User.find(1);
 
         assertThat(userInDB, equalTo(user));
+    }
+
+    @Test
+    public void should_able_to_eager_loading_one_to_many_records_during_find_all() throws SQLException {
+        //User.includes(Article.class);
+        //List<User> users = User.find_all();
+    }
+
+    @Test
+    public void should_able_to_eager_loading_one_to_many_records_during_find() {
     }
 
     @Test
@@ -83,7 +106,6 @@ public class ModelTest extends BaseDBTest{
     @Test
     public void should_able_to_get_row_count_in_table() throws SQLException {
         int recordsCount = User.count();
-
         assertThat(recordsCount, is(User.<User>find_all().size()));
     }
 
@@ -151,5 +173,13 @@ public class ModelTest extends BaseDBTest{
         user.firstName = firstName;
         user.email = email;
         return user;
+    }
+
+    private Article createArticle(int id) {
+        Article article = new Article();
+        article.userId = id;
+        article.title = "_title";
+        article.content = "_content";
+        return article;
     }
 }

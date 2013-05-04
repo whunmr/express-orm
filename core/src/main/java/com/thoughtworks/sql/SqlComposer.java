@@ -14,4 +14,8 @@ public interface SqlComposer {
     String getCountSQL(String modelClassName);
 
     String getDeleteInSQL(String modelClassName, Object... primaryKeys);
+
+    String getLastInsertIdSQL();
+
+    String getUpdateSQL(Model model);
 }

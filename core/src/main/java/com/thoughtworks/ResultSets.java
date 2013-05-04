@@ -1,4 +1,4 @@
-package com.thoughtworks.util;
+package com.thoughtworks;
 
 import com.expressioc.utility.ClassUtility;
 import com.thoughtworks.naming.DefaultNameGuesser;

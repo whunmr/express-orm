@@ -18,4 +18,6 @@ public interface SqlComposer {
     String getLastInsertIdSQL();
 
     String getUpdateSQL(Model model);
+
+    String getTheManysSQLInOne2ManyAssociation(Class theManyClass, Model model);
 }

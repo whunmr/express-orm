@@ -20,7 +20,9 @@ public class ModelTest extends BaseDBTest{
     private User userA;
     private User userB;
     private User userC;
-    private Article article;
+    private Article articleA;
+    private Article articleB;
+    private Article articleC;
 
     @Before
     public void setUp() throws ClassNotFoundException, IOException, SQLException {
@@ -29,7 +31,9 @@ public class ModelTest extends BaseDBTest{
         userA = createUser("A", "a@a.a").save();
         userB = createUser("B", "b@b.b").save();
         userC = createUser("C", "c@c.c").save();
-        article = createArticle(userA.getId()).save();
+        articleA = createArticle(userA.getId()).save();
+        articleB = createArticle(userB.getId()).save();
+        articleC = createArticle(userC.getId()).save();
     }
 
     @After
@@ -49,7 +53,6 @@ public class ModelTest extends BaseDBTest{
 
     @Test
     public void should_able_to_update_object_by_save_method() throws SQLException {
-        int idBeforeSave = userA.getId();
         userA.email = "newA@newA.newA";
 
         userA.save();
@@ -75,13 +78,15 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_eager_loading_one_to_many_records_during_find_all() throws SQLException {
-        //User.includes(Article.class);
-        //List<User> users = User.find_all();
+    public void should_able_to_find_all_one_to_many_records_of_instance() throws SQLException {
+        List<Article> articlesOfUserA = userA.find_all(Article.class);
+        assertThat(articlesOfUserA, containsInAnyOrder(articleA));
     }
 
     @Test
-    public void should_able_to_eager_loading_one_to_many_records_during_find() {
+    public void should_able_to_eager_loading_one_to_many_records_during_find_all() throws SQLException {
+        User.includes(Article.class);
+        List<User> users = User.find_all();
     }
 
     @Test
@@ -134,6 +139,7 @@ public class ModelTest extends BaseDBTest{
     @Test
     public void should_able_to_delete_all_records_by_empty_where_criteria() throws SQLException {
         User.delete_all();
+        assertThat(User.count(), is(0));
     }
 
     /////////////////////////////////////////////////////////

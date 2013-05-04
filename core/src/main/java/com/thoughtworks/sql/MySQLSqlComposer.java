@@ -77,9 +77,14 @@ public class MySQLSqlComposer implements SqlComposer {
     public String getUpdateSQL(Model model) {
         Map<String, String> valuesMap = buildValuesMap(model);
         String valuesToSet = Joiner.on(",").withKeyValueSeparator("=").join(valuesMap);
-        String format = String.format("UPDATE %s SET %s WHERE id = %s", model.getTableName(), valuesToSet, model.getId());
+        return String.format("UPDATE %s SET %s WHERE id = %s", model.getTableName(), valuesToSet, model.getId());
+    }
 
-        return format;
+    @Override
+    public String getTheManysSQLInOne2ManyAssociation(Class theManyClass, Model model) {
+        String targetTable = guesser.getTableName(theManyClass.getName());
+        String foreignKey = guesser.getForeignKeyOf(model.getClass().getSimpleName());
+        return String.format("SELECT * FROM %s WHERE %s = %s", targetTable, foreignKey, model.getId());
     }
 
     private Map<String, String> buildValuesMap(Model model) {

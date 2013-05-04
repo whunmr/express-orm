@@ -1,6 +1,5 @@
 package com.thoughtworks;
 
-import com.expressioc.utility.ClassUtility;
 import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.naming.NameGuesser;
 import com.thoughtworks.sql.MySQLSqlComposer;
@@ -13,40 +12,38 @@ import java.sql.Statement;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
 
 public class Model {
-    private static NameGuesser guesser = new DefaultNameGuesser();              //TODO: use ioc
-    private static SqlComposer sql = new MySQLSqlComposer();            //TODO: use ioc
+    private static NameGuesser guesser = new DefaultNameGuesser();
+    private static SqlComposer sqlComposer = new MySQLSqlComposer();
 
-    private static Model STATIC_INSTANCE = null;
+
 
     private int id;
-    private List<Class<? extends Model>> eagerLoadingList = newArrayList();
 
     public <T extends Model> T save() throws SQLException {
         boolean isNewRecord = this.id == 0;
         if (isNewRecord) {
-            executeUpdate(sql.getInsertSQL(this));
-            this.id = getIntegerQueryResult(sql.getLastInsertIdSQL());
+            executeUpdate(sqlComposer.getInsertSQL(this));
+            this.id = getIntegerQueryResult(sqlComposer.getLastInsertIdSQL());
         } else {
-            executeUpdate(sql.getUpdateSQL(this));
+            executeUpdate(sqlComposer.getUpdateSQL(this));
         }
 
         return (T)this;
     }
 
     public static <T extends Model> T find(Object primaryKey) throws SQLException {
-        String sql = Model.sql.getSelectSQL(modelName(), primaryKey);
+        String sql = sqlComposer.getSelectSQL(modelName(), primaryKey);
         return executeSingleObjectQuery(modelName(), sql);
     }
 
     public static <T extends Model> List<T> find_all() throws SQLException {
-        return find_all(null);
+        return find_all("");
     }
 
     public static <T extends Model> List<T> find_all(String criteria) throws SQLException {
-        String sql = Model.sql.getSelectWithWhereSQL(modelName(), criteria);
+        String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
         return executeObjectListQuery(modelName(), sql);
     }
 
@@ -55,12 +52,12 @@ public class Model {
     }
 
     public static <T extends Model> T where(String criteria) throws SQLException {
-        String sql = Model.sql.getSelectWithWhereSQL(modelName(), criteria);
+        String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
         return executeSingleObjectQuery(modelName(), sql);
     }
 
     public static int count() throws SQLException {
-        String countSQL = sql.getCountSQL(modelName());
+        String countSQL = sqlComposer.getCountSQL(modelName());
         return getIntegerQueryResult(countSQL);
     }
 
@@ -81,13 +78,13 @@ public class Model {
     }
 
     public static int delete_all(String criteria) throws SQLException {
-        String deleteAllSQL = sql.getDeleteSQL(modelName(), criteria);
+        String deleteAllSQL = sqlComposer.getDeleteSQL(modelName(), criteria);
         return executeUpdate(deleteAllSQL);
     }
 
     public static int delete(Object... primaryKeys) throws SQLException {
         checkNotNull(primaryKeys);
-        String deleteInSQL = sql.getDeleteInSQL(modelName(), primaryKeys);
+        String deleteInSQL = sqlComposer.getDeleteInSQL(modelName(), primaryKeys);
         return executeUpdate(deleteInSQL);
     }
 
@@ -129,11 +126,8 @@ public class Model {
         return guesser.getTableName(getClass().getSimpleName());
     }
 
-    public static <T extends Model> Model includes(Class includeClazz) {
-        if (STATIC_INSTANCE == null) {
-            STATIC_INSTANCE = (T) ClassUtility.newInstanceOf(getModelClass());
-        }
-        return STATIC_INSTANCE;
+    public static void includes(Class includeClazz) {
+
     }
 
     private static Class getModelClass() {
@@ -160,6 +154,11 @@ public class Model {
 
     public int getId() {
         return id;
+    }
+
+    public <T extends Model> List<T> find_all(Class<T> theManyClass) throws SQLException {
+        String sql = sqlComposer.getTheManysSQLInOne2ManyAssociation(theManyClass, this);
+        return executeObjectListQuery(theManyClass.getName(), sql);
     }
 
     static class QueryResult {

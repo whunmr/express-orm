@@ -9,11 +9,11 @@ public class DefaultNameGuesser implements NameGuesser {
         checkNotNull(className);
 
         String classNameWithoutPackage = className.replaceAll("(.*\\.)", "");
-        return underscore(classNameWithoutPackage);
+        return underscore(classNameWithoutPackage) + "s";
     }
 
     private String underscore(String camel) {
-        return camel.replaceAll("[A-Z]", "_$0").substring(1).toLowerCase() + "s";
+        return camel.replaceAll("[A-Z]", "_$0").substring(1).toLowerCase();
     }
 
     @Override
@@ -33,5 +33,10 @@ public class DefaultNameGuesser implements NameGuesser {
         }
 
         return stringBuilder.toString();
+    }
+
+    @Override
+    public String getForeignKeyOf(String clazzName) {
+        return underscore(clazzName) + "_id";
     }
 }

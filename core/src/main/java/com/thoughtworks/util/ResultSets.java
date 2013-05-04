@@ -41,9 +41,8 @@ public class ResultSets {
         T instance = getNewInstance(modelClassName);
 
         for (String column : columns) {
-            Object columnValue = resultSet.getObject(column);
-
             try {
+                Object columnValue = resultSet.getObject(column);
                 Field field = instance.getClass().getDeclaredField(guesser.getFieldName(column));
                 field.setAccessible(true);
                 field.set(instance, getTypedValue(columnValue, field.getType()));
@@ -52,7 +51,6 @@ public class ResultSets {
                 continue;
             } catch (IllegalAccessException e) {
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 

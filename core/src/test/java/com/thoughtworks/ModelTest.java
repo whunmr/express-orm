@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -70,6 +71,13 @@ public class ModelTest extends BaseDBTest{
     public void should_able_to_find_record_object_by_sql() throws SQLException {
         User userInDB = User.find_by_sql("SELECT * FROM users WHERE email = 'a@a.a'");
         assertThat(userInDB, equalTo(userA));
+    }
+
+    @Test
+    public void should_able_to_select_columns_of_record_by_sql() throws SQLException {
+        User userInDB = User.find_by_sql("SELECT email FROM users WHERE email = 'a@a.a'");
+        assertThat(userInDB.firstName, is(nullValue()));
+        assertThat(userInDB.email, is(userA.email));
     }
 
     @Test

@@ -1,10 +1,9 @@
 package com.thoughtworks;
 
 import com.expressioc.utility.ClassUtility;
-import com.thoughtworks.naming.DefaultNameGuesser;
-import com.thoughtworks.Model;
-import com.thoughtworks.naming.NameGuesser;
 import com.thoughtworks.metadata.MetaDataProvider;
+import com.thoughtworks.naming.DefaultNameGuesser;
+import com.thoughtworks.naming.NameGuesser;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
@@ -37,24 +36,36 @@ public class ResultSets {
         return assembleInstanceFrom(resultSet, columns, modelClassName);
     }
 
-    private static <T extends Model> T assembleInstanceFrom(ResultSet resultSet, List<String> columns, String modelClassName) throws SQLException {
+    private static <T extends Model> T assembleInstanceFrom(ResultSet resultSet, List<String> columns, String modelClassName) {
         T instance = getNewInstance(modelClassName);
+        Class<? extends Model> modelClass = instance.getClass();
+        Object columnValue = null;
 
         for (String column : columns) {
             try {
-                Object columnValue = resultSet.getObject(column);
-                Field field = instance.getClass().getDeclaredField(guesser.getFieldName(column));
-                field.setAccessible(true);
-                field.set(instance, getTypedValue(columnValue, field.getType()));
+                columnValue = resultSet.getObject(column);
+                setFieldValue(instance, column, columnValue, modelClass);
             } catch (NoSuchFieldException e) {
-                System.out.println(e.toString());
-                continue;
-            } catch (IllegalAccessException e) {
+                try {
+                    setFieldValue(instance, column, columnValue, modelClass.getSuperclass());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
         return instance;
+    }
+
+    private static <T extends Model> void setFieldValue(T instance, String column, Object columnValue, Class<?> modelClass) throws Exception {
+        try {
+            Field field = modelClass.getDeclaredField(guesser.getFieldName(column));
+            field.setAccessible(true);
+            field.set(instance, getTypedValue(columnValue, field.getType()));
+        } catch (IllegalAccessException e) {
+        }
     }
 
     private static Object getTypedValue(Object columnValue, Class<?> clazz) throws Exception {

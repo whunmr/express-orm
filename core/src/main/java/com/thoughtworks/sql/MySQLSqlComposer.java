@@ -1,7 +1,9 @@
 package com.thoughtworks.sql;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.thoughtworks.Model;
 import com.thoughtworks.metadata.MetaDataProvider;
 import com.thoughtworks.metadata.ModelMetaData;
@@ -83,8 +85,22 @@ public class MySQLSqlComposer implements SqlComposer {
     @Override
     public String getTheManysSQLInOne2ManyAssociation(Class theManyClass, Model model) {
         String targetTable = guesser.getTableName(theManyClass.getName());
-        String foreignKey = guesser.getForeignKeyOf(model.getClass().getSimpleName());
+        String foreignKey = guesser.getForeignKeyNameInDB(model.getClass().getSimpleName());
         return String.format("SELECT * FROM %s WHERE %s = %s", targetTable, foreignKey, model.getId());
+    }
+
+    @Override
+    public String getParentIdInCriteria(String modelClassName, List<Model> resultModels) {
+        String foreignKey = guesser.getForeignKeyNameInDB(modelClassName);
+
+        List<String> ids = Lists.transform(resultModels, new Function<Model, String>() {
+            @Override
+            public String apply(Model parentInstance) {
+                return String.valueOf(parentInstance.getId());
+            }
+        });
+
+        return String.format(" %s IN ( %s )", foreignKey, Joiner.on(",").join(ids));
     }
 
     private Map<String, String> buildValuesMap(Model model) {

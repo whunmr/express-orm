@@ -5,5 +5,9 @@ public interface NameGuesser {
 
     String getFieldName(String columnName);
 
-    String getForeignKeyOf(String tableName);
+    String getForeignKeyNameInDB(String modelClassName);
+
+    String getCollectionFieldName(String fieldModelClassName);
+
+    String getForeignKeyFieldName(String parentModelClassName);
 }

@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class ModelTest extends BaseDBTest{
@@ -87,6 +86,7 @@ public class ModelTest extends BaseDBTest{
     public void should_able_to_eager_loading_one_to_many_records_during_find_all() throws SQLException {
         User.includes(Article.class);
         List<User> users = User.find_all();
+        assertThat(users.get(0).articles, contains(articleA));
     }
 
     @Test

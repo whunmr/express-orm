@@ -36,7 +36,19 @@ public class DefaultNameGuesser implements NameGuesser {
     }
 
     @Override
-    public String getForeignKeyOf(String clazzName) {
-        return underscore(clazzName) + "_id";
+    public String getForeignKeyNameInDB(String modelClassName) {
+        return underscore(modelClassName.replaceAll("(.*\\.)", "")) + "_id";
+    }
+
+    @Override
+    public String getCollectionFieldName(String fieldModelClassName) {
+        return getTableName(fieldModelClassName);
+    }
+
+    @Override
+    public String getForeignKeyFieldName(String parentModelClassName) {
+        String simpleClassName = parentModelClassName.replaceAll("(.*\\.)", "");
+        char firstChar = Character.toLowerCase(simpleClassName.charAt(0));
+        return String.format("%s%s%s", firstChar, simpleClassName.substring(1), "Id");
     }
 }

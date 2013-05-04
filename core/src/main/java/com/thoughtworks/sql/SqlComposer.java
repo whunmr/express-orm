@@ -2,6 +2,8 @@ package com.thoughtworks.sql;
 
 import com.thoughtworks.Model;
 
+import java.util.List;
+
 public interface SqlComposer {
     String getInsertSQL(Model model);
 
@@ -20,4 +22,6 @@ public interface SqlComposer {
     String getUpdateSQL(Model model);
 
     String getTheManysSQLInOne2ManyAssociation(Class theManyClass, Model model);
+
+    String getParentIdInCriteria(String modelClassName, List<Model> resultModels);
 }

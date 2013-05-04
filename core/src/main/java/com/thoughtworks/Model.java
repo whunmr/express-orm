@@ -2,24 +2,38 @@ package com.thoughtworks;
 
 import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.naming.NameGuesser;
+import com.thoughtworks.query.QueryContext;
+import com.thoughtworks.query.QueryResult;
 import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
 import com.thoughtworks.util.SqlUtil;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newHashSet;
 
 public class Model {
     private static NameGuesser guesser = new DefaultNameGuesser();
     private static SqlComposer sqlComposer = new MySQLSqlComposer();
 
-
-
     private int id;
+
+    private static ThreadLocal<QueryContext> queryContext = new ThreadLocal<QueryContext>() {
+        @Override
+        protected QueryContext initialValue() {
+            return new QueryContext();
+        }
+    };
 
     public <T extends Model> T save() throws SQLException {
         boolean isNewRecord = this.id == 0;
@@ -44,7 +58,103 @@ public class Model {
 
     public static <T extends Model> List<T> find_all(String criteria) throws SQLException {
         String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
-        return executeObjectListQuery(modelName(), sql);
+        List<T> resultModels = executeObjectListQuery(modelName(), sql);
+        if (resultModels.isEmpty()) {
+            return resultModels;
+        }
+
+        Class resultModelClass = getModelClass();
+
+        String parentIdInCriteria = sqlComposer.getParentIdInCriteria(modelName(), (List<Model>) resultModels);
+
+        Set<Class<? extends Model>> eagerModelSetOf = queryContext.get().getEagerModelSetOf(resultModelClass);
+        for (Class<? extends Model> eagerModelClass : eagerModelSetOf) {
+            String selectSQL = sqlComposer.getSelectWithWhereSQL(eagerModelClass.getName(), parentIdInCriteria);
+            List<? extends Model> eagerLoadedInstances = executeObjectListQuery(eagerModelClass.getName(), selectSQL);
+
+            bindEagerInstances(resultModels, eagerLoadedInstances, resultModelClass, eagerModelClass);
+        }
+
+        return resultModels;
+    }
+
+    private static <T extends Model> void bindEagerInstances(List<T> resultModels, List<? extends Model> eagerInstances,
+                                                             Class resultModelClass, Class<? extends Model> eagerModelClass) {
+        String eagerFieldName = guesser.getCollectionFieldName(eagerModelClass.getName());
+
+        Field eagerField = null;
+        try {
+            eagerField = resultModelClass.getDeclaredField(eagerFieldName);
+            eagerField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            return;
+        }
+
+        if (!isFieldTypeConsistent(eagerModelClass, eagerField)){
+            return;
+        }
+
+        Map<Object, List<Model>> eagerInstancesMap = buildForeignKeyToEagerInstancesMap(getModelClass(), eagerModelClass, eagerInstances);
+
+        for (T resultModel : resultModels) {
+            try {
+                List<Model> eagerInstancesOfThisResultModel = eagerInstancesMap.get(resultModel.getId());
+
+                if (eagerField.getType().equals(List.class)) {
+                    eagerField.set(resultModel, eagerInstancesOfThisResultModel);
+                } else if (eagerField.getType().equals(Set.class)) {
+                    eagerField.set(resultModel, newHashSet(eagerInstancesOfThisResultModel));
+                } if (eagerField.getType().isArray()) {
+                    eagerField.set(resultModel,newArrayList(eagerInstancesOfThisResultModel).toArray());
+                }
+            } catch (IllegalAccessException e) {
+            }
+        }
+    }
+
+    private static boolean isFieldTypeConsistent(Class<? extends Model> eagerModelClass, Field eagerField) {
+        Class elementClass = null;
+
+        if (eagerField.getType().isArray()) {
+            elementClass = eagerField.getType().getComponentType();
+        } else {
+            ParameterizedType listType = (ParameterizedType) eagerField.getGenericType();
+            elementClass = (Class) listType.getActualTypeArguments()[0];
+        }
+
+        if (!elementClass.equals(eagerModelClass)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static Map<Object, List<Model>> buildForeignKeyToEagerInstancesMap(Class modelClass, Class eagerModelClass, List<? extends Model> eagerInstances) {
+        String foreignKeyFieldName = guesser.getForeignKeyFieldName(modelName());
+
+        Map<Object, List<Model>> eagerInstancesMap = newHashMap();
+
+        try {
+            Field field = eagerModelClass.getField(foreignKeyFieldName);
+            field.setAccessible(true);
+
+            for (Model eagerInstance : eagerInstances) {
+                Object foreignKeyValue = field.get(eagerInstance);
+
+                List<Model> eagerList = eagerInstancesMap.get(foreignKeyValue);
+                if (eagerList == null) {
+                    eagerList = newArrayList();
+                }
+                eagerList.add(eagerInstance);
+                eagerInstancesMap.put(foreignKeyValue, eagerList);
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return eagerInstancesMap;
     }
 
     public static <T extends Model> T find_by_sql(String sql) throws SQLException {
@@ -126,8 +236,8 @@ public class Model {
         return guesser.getTableName(getClass().getSimpleName());
     }
 
-    public static void includes(Class includeClazz) {
-
+    public static void includes(Class eagerLoadClass) {
+        queryContext.get().addEagerLoadingModels(getModelClass(), eagerLoadClass);
     }
 
     private static Class getModelClass() {
@@ -161,22 +271,4 @@ public class Model {
         return executeObjectListQuery(theManyClass.getName(), sql);
     }
 
-    static class QueryResult {
-        private final ResultSet resultSet;
-        private final Statement statement;
-
-        QueryResult(ResultSet resultSet, Statement statement) {
-            this.resultSet = resultSet;
-            this.statement = statement;
-        }
-
-        public ResultSet getResultSet() {
-            return resultSet;
-        }
-
-        void close() {
-            SqlUtil.close(resultSet);
-            SqlUtil.close(statement);
-        }
-    }
 }

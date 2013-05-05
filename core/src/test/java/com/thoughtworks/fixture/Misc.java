@@ -2,7 +2,7 @@ package com.thoughtworks.fixture;
 
 import com.thoughtworks.Model;
 
-public class Misc extends Model {
+public class Misc extends Model<Misc> {
     public Boolean boolValue;
     public Character charValue;
     public Byte byteValue;

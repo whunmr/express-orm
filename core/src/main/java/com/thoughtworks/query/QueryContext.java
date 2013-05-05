@@ -10,9 +10,9 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 
 public class QueryContext {
-    private Map<Class<? extends Model>, Set<Class<? extends Model>>> eagerLoadingMap = newHashMap();
-    public void addEagerLoadingModels(Class<? extends Model> originalModel, Class<? extends Model> eagerLoadingModel) {
-        Set<Class<? extends Model>> eagerLoadingModelSet = eagerLoadingMap.get(originalModel);
+    private Map<Class, Set<Class<Model>>> eagerLoadingMap = newHashMap();
+    public void addEagerLoadingModels(Class originalModel, Class<Model> eagerLoadingModel) {
+        Set<Class<Model>> eagerLoadingModelSet = eagerLoadingMap.get(originalModel);
         if (eagerLoadingModelSet == null) {
             eagerLoadingModelSet = newHashSet();
         }
@@ -21,8 +21,12 @@ public class QueryContext {
         eagerLoadingMap.put(originalModel, eagerLoadingModelSet);
     }
 
-    public Set<Class<? extends Model>> getEagerModelSetOf(Class<? extends Model> originalModel) {
-        Set<Class<? extends Model>> classes = eagerLoadingMap.get(originalModel);
-        return classes != null ? classes : new HashSet<Class<? extends Model>>();
+    public Set<Class<Model>> getEagerClassSetOf(Class originalModel) {
+        Set<Class<Model>> classes = eagerLoadingMap.get(originalModel);
+        return classes != null ? classes : new HashSet<Class<Model>>();
+    }
+
+    public void clearEagerLoadingFor(Class resultModelClass) {
+        eagerLoadingMap.remove(resultModelClass);
     }
 }

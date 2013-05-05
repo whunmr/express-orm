@@ -8,8 +8,7 @@ import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
 import com.thoughtworks.util.SqlUtil;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -22,7 +21,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 
-public class Model {
+public class Model<T> {
     private static NameGuesser guesser = new DefaultNameGuesser();
     private static SqlComposer sqlComposer = new MySQLSqlComposer();
 
@@ -35,7 +34,7 @@ public class Model {
         }
     };
 
-    public <T extends Model> T save() throws SQLException {
+    public T save() throws SQLException {
         boolean isNewRecord = this.id == 0;
         if (isNewRecord) {
             executeUpdate(sqlComposer.getInsertSQL(this));
@@ -44,7 +43,7 @@ public class Model {
             executeUpdate(sqlComposer.getUpdateSQL(this));
         }
 
-        return (T)this;
+        return (T) this;
     }
 
     public static <T extends Model> T find(Object primaryKey) throws SQLException {
@@ -58,103 +57,140 @@ public class Model {
 
     public static <T extends Model> List<T> find_all(String criteria) throws SQLException {
         String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
-        List<T> resultModels = executeObjectListQuery(modelName(), sql);
+        List<T> resultModels = executeObjectListQuery(getModelClass(), sql);
         if (resultModels.isEmpty()) {
             return resultModels;
         }
 
-        Class resultModelClass = getModelClass();
+        return doEagerLoadingIfNeed(resultModels, getModelClass());
+    }
 
+    private static <T extends Model> List<T> doEagerLoadingIfNeed(List<T> resultModels, Class resultModelClass) throws SQLException {
         String parentIdInCriteria = sqlComposer.getParentIdInCriteria(modelName(), (List<Model>) resultModels);
 
-        Set<Class<? extends Model>> eagerModelSetOf = queryContext.get().getEagerModelSetOf(resultModelClass);
-        for (Class<? extends Model> eagerModelClass : eagerModelSetOf) {
-            String selectSQL = sqlComposer.getSelectWithWhereSQL(eagerModelClass.getName(), parentIdInCriteria);
-            List<? extends Model> eagerLoadedInstances = executeObjectListQuery(eagerModelClass.getName(), selectSQL);
+        Set<Class<Model>> eagerClasses = queryContext.get().getEagerClassSetOf(resultModelClass);
+        try {
+            for (Class<Model> eagerClass : eagerClasses) {
+                String eagerLoadingSQL = sqlComposer.getSelectWithWhereSQL(eagerClass.getName(), parentIdInCriteria);
+                List<Model> eagerInstances = executeObjectListQuery(eagerClass, eagerLoadingSQL);
 
-            bindEagerInstances(resultModels, eagerLoadedInstances, resultModelClass, eagerModelClass);
+                bindEagerInstances(resultModels, eagerInstances, resultModelClass, eagerClass);
+            }
+        } finally {
+            queryContext.get().clearEagerLoadingFor(resultModelClass);
         }
 
         return resultModels;
     }
 
-    private static <T extends Model> void bindEagerInstances(List<T> resultModels, List<? extends Model> eagerInstances,
-                                                             Class resultModelClass, Class<? extends Model> eagerModelClass) {
-        String eagerFieldName = guesser.getCollectionFieldName(eagerModelClass.getName());
-
-        Field eagerField = null;
-        try {
-            eagerField = resultModelClass.getDeclaredField(eagerFieldName);
-            eagerField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            return;
-        }
-
-        if (!isFieldTypeConsistent(eagerModelClass, eagerField)){
-            return;
-        }
-
-        Map<Object, List<Model>> eagerInstancesMap = buildForeignKeyToEagerInstancesMap(getModelClass(), eagerModelClass, eagerInstances);
-
-        for (T resultModel : resultModels) {
-            try {
-                List<Model> eagerInstancesOfThisResultModel = eagerInstancesMap.get(resultModel.getId());
-
-                if (eagerField.getType().equals(List.class)) {
-                    eagerField.set(resultModel, eagerInstancesOfThisResultModel);
-                } else if (eagerField.getType().equals(Set.class)) {
-                    eagerField.set(resultModel, newHashSet(eagerInstancesOfThisResultModel));
-                } if (eagerField.getType().isArray()) {
-                    eagerField.set(resultModel,newArrayList(eagerInstancesOfThisResultModel).toArray());
-                }
-            } catch (IllegalAccessException e) {
+    private static <T extends Model> void bindEagerInstances(List<T> resultModels, List<Model> eagerInstances,
+                                                             Class resultModelClass, Class<Model> eagerClass) {
+        Field eagerField = getEagerField(resultModelClass, eagerClass);
+        if (eagerField != null) {
+            Map<Object, List<Model>> eagerMap = buildForeignKeyToEagerInstancesMap(eagerClass, eagerInstances);
+            for (T resultModel : resultModels) {
+                SetEagerFieldFor(resultModel, eagerField, eagerMap);
             }
         }
     }
 
-    private static boolean isFieldTypeConsistent(Class<? extends Model> eagerModelClass, Field eagerField) {
-        Class elementClass = null;
+    private static <T extends Model> void SetEagerFieldFor(T resultModel, Field eagerField, Map<Object, List<Model>> eagerInstancesMap) {
+        try {
+            List<Model> eagerInstances = eagerInstancesMap.get(resultModel.getId());
+            if (eagerInstances == null || eagerInstances.isEmpty()) {
+                return;
+            }
+
+            Class<?> fieldType = eagerField.getType();
+            if (fieldType.equals(List.class)) {
+                eagerField.set(resultModel, eagerInstances);
+            } else if (fieldType.equals(Set.class)) {
+                eagerField.set(resultModel, newHashSet(eagerInstances));
+            }
+            if (fieldType.isArray()) {
+                Class<?> eagerFieldComponentType = getClass(eagerInstances.get(0).getClass());
+                Object[] array = (Object[]) Array.newInstance(eagerFieldComponentType, eagerInstances.size());
+                eagerInstances.toArray(array);
+                eagerField.set(resultModel, array);
+            }
+        } catch (IllegalAccessException e) {
+        }
+    }
+
+    public static Class<?> getClass(Type type)
+    {
+        if (type instanceof Class) {
+            return (Class) type;
+        } else if (type instanceof ParameterizedType) {
+            return getClass(((ParameterizedType) type).getRawType());
+        } else if (type instanceof GenericArrayType) {
+            Type componentType = ((GenericArrayType) type).getGenericComponentType();
+            Class<?> componentClass = getClass(componentType);
+            if (componentClass != null) {
+                return Array.newInstance(componentClass, 0).getClass();
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private static Field getEagerField(Class resultModelClass, Class<? extends Model> eagerClass) {
+        try {
+            String eagerFieldName = guesser.getCollectionFieldName(eagerClass.getName());
+            Field eagerField = getAccessibleField(resultModelClass, eagerFieldName);
+            if (isFieldTypeConsistent(eagerClass, eagerField)) {
+                return eagerField;
+            }
+        } catch (NoSuchFieldException e) {
+        }
+        return null;
+    }
+
+    private static boolean isFieldTypeConsistent(Class<? extends Model> eagerClass, Field eagerField) {
+        Class fieldClass;
 
         if (eagerField.getType().isArray()) {
-            elementClass = eagerField.getType().getComponentType();
+            fieldClass = eagerField.getType().getComponentType();
         } else {
             ParameterizedType listType = (ParameterizedType) eagerField.getGenericType();
-            elementClass = (Class) listType.getActualTypeArguments()[0];
+            fieldClass = (Class) listType.getActualTypeArguments()[0];
         }
 
-        if (!elementClass.equals(eagerModelClass)) {
-            return false;
-        }
-
-        return true;
+        return fieldClass.equals(eagerClass);
     }
 
-    private static Map<Object, List<Model>> buildForeignKeyToEagerInstancesMap(Class modelClass, Class eagerModelClass, List<? extends Model> eagerInstances) {
+    private static <S extends Model> Map<Object, List<S>> buildForeignKeyToEagerInstancesMap(Class eagerClass, List<S> eagerInstances) {
         String foreignKeyFieldName = guesser.getForeignKeyFieldName(modelName());
-
-        Map<Object, List<Model>> eagerInstancesMap = newHashMap();
+        Map<Object, List<S>> eagerInstancesMap = newHashMap();
 
         try {
-            Field field = eagerModelClass.getField(foreignKeyFieldName);
-            field.setAccessible(true);
-
-            for (Model eagerInstance : eagerInstances) {
-                Object foreignKeyValue = field.get(eagerInstance);
-
-                List<Model> eagerList = eagerInstancesMap.get(foreignKeyValue);
-                if (eagerList == null) {
-                    eagerList = newArrayList();
-                }
-                eagerList.add(eagerInstance);
-                eagerInstancesMap.put(foreignKeyValue, eagerList);
+            Field field = getAccessibleField(eagerClass, foreignKeyFieldName);
+            for (S eagerInstance : eagerInstances) {
+                putEagerInstanceToMapAccordingForeignKey(eagerInstancesMap, field, eagerInstance);
             }
         } catch (NoSuchFieldException e) {
-            e.printStackTrace();
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
         }
 
         return eagerInstancesMap;
+    }
+
+    private static <S extends Model> void putEagerInstanceToMapAccordingForeignKey(Map<Object, List<S>> eagerInstancesMap, Field field, S eagerInstance) throws IllegalAccessException {
+        Object foreignKeyValue = field.get(eagerInstance);
+        List<S> eagerList = eagerInstancesMap.get(foreignKeyValue);
+        if (eagerList == null) {
+            eagerList = newArrayList();
+        }
+        eagerList.add(eagerInstance);
+        eagerInstancesMap.put(foreignKeyValue, eagerList);
+    }
+
+    private static Field getAccessibleField(Class eagerModelClass, String foreignKeyFieldName) throws NoSuchFieldException {
+        Field field = eagerModelClass.getField(foreignKeyFieldName);
+        field.setAccessible(true);
+        return field;
     }
 
     public static <T extends Model> T find_by_sql(String sql) throws SQLException {
@@ -221,12 +257,12 @@ public class Model {
         return new QueryResult(resultSet, statement);
     }
 
-    private static <T extends Model> List<T> executeObjectListQuery(String modelClassName, String sql) throws SQLException {
+    private static <T extends Model> List<T> executeObjectListQuery(Class modelClass, String sql) throws SQLException {
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
-            return ResultSets.assembleInstanceListBy(resultSet, modelClassName);
+            return ResultSets.assembleInstanceListBy(resultSet, modelClass.getName());
         } finally {
             SqlUtil.close(statement);
         }
@@ -268,7 +304,7 @@ public class Model {
 
     public <T extends Model> List<T> find_all(Class<T> theManyClass) throws SQLException {
         String sql = sqlComposer.getTheManysSQLInOne2ManyAssociation(theManyClass, this);
-        return executeObjectListQuery(theManyClass.getName(), sql);
+        return executeObjectListQuery(theManyClass, sql);
     }
 
 }

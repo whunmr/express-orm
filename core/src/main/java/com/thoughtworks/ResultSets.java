@@ -52,7 +52,6 @@ public class ResultSets {
                     e1.printStackTrace();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 

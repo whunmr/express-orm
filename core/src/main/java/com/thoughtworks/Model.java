@@ -21,7 +21,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 
-public class Model<T> {
+public class Model {
     private static NameGuesser guesser = new DefaultNameGuesser();
     private static SqlComposer sqlComposer = new MySQLSqlComposer();
 
@@ -34,7 +34,7 @@ public class Model<T> {
         }
     };
 
-    public T save() throws SQLException {
+    public <T extends Model> T save() throws SQLException {
         boolean isNewRecord = this.id == 0;
         if (isNewRecord) {
             executeUpdate(sqlComposer.getInsertSQL(this));

@@ -2,7 +2,7 @@ package com.thoughtworks.fixture;
 
 import com.thoughtworks.Model;
 
-public class User extends Model<User> {
+public class User extends Model {
     public String firstName;
     public String email;
     public Article[] articles;

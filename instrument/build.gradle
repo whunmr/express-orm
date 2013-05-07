@@ -3,7 +3,7 @@ project (':instrument') {
         compile group:'org.javassist', name:'javassist', version:'3.17.1-GA'
     }
 
-    File bootClassLib;
+    File bootClassLib = new File(".");
     new File(System.getProperty("user.home") + "/.gradle/").eachDirRecurse() { dir ->
         dir.eachFileMatch(~/javassist-3.17.1-GA.jar/) { file ->
             bootClassLib = file

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
@@ -46,13 +45,13 @@ public class Model {
         return (T) this;
     }
 
-    public static <T extends Model> T find(Object primaryKey) throws SQLException {
+    public static <T extends Model> T find_by_id(Object primaryKey) throws SQLException {
         String sql = sqlComposer.getSelectSQL(modelName(), primaryKey);
         return executeSingleObjectQuery(modelName(), sql);
     }
 
     public static <T extends Model> List<T> find_all() throws SQLException {
-        return find_all("");
+        return new LazyList<T>(modelName());
     }
 
     public static <T extends Model> List<T> find_all(String criteria) throws SQLException {
@@ -197,7 +196,7 @@ public class Model {
         return executeSingleObjectQuery(modelName(), sql);
     }
 
-    public static <T extends Model> T where(String criteria) throws SQLException {
+    public static <T extends Model> T find_first(String criteria) throws SQLException {
         String sql = sqlComposer.getSelectWithWhereSQL(modelName(), criteria);
         return executeSingleObjectQuery(modelName(), sql);
     }
@@ -228,13 +227,18 @@ public class Model {
         return executeUpdate(deleteAllSQL);
     }
 
-    public static int delete(Object... primaryKeys) throws SQLException {
-        checkNotNull(primaryKeys);
+    public int delete() throws SQLException {
+        String deleteInSQL = sqlComposer.getDeleteInSQL(modelName(), this.getId());
+        return executeUpdate(deleteInSQL);
+    }
+
+    public static int delete(Object[] primaryKeys) throws SQLException {
         String deleteInSQL = sqlComposer.getDeleteInSQL(modelName(), primaryKeys);
         return executeUpdate(deleteInSQL);
     }
 
     private static int executeUpdate(String sql) throws SQLException {
+        System.out.println(sql);
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();

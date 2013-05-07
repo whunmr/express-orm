@@ -21,8 +21,6 @@ public class ModelTest extends BaseDBTest{
     private User userB;
     private User userC;
     private Article articleA;
-    private Article articleB;
-    private Article articleC;
 
     @Before
     public void setUp() throws ClassNotFoundException, IOException, SQLException {
@@ -32,8 +30,6 @@ public class ModelTest extends BaseDBTest{
         userB = createUser("B", "b@b.b").save();
         userC = createUser("C", "c@c.c").save();
         articleA = createArticle(userA.getId()).save();
-        articleB = createArticle(userB.getId()).save();
-        articleC = createArticle(userC.getId()).save();
     }
 
     @After
@@ -57,7 +53,7 @@ public class ModelTest extends BaseDBTest{
 
         userA.save();
 
-        User updatedUserInDB = User.where("email = 'newA@newA.newA'");
+        User updatedUserInDB = User.find_first("email = 'newA@newA.newA'");
         assertThat(updatedUserInDB, is(equalTo(userA)));
     }
 
@@ -72,7 +68,7 @@ public class ModelTest extends BaseDBTest{
         truncateTable("users");
         User user = createUser("A", "a@a.a").save();
 
-        User userInDB = User.find(1);
+        User userInDB = User.find_by_id(1);
 
         assertThat(userInDB, equalTo(user));
     }
@@ -86,13 +82,13 @@ public class ModelTest extends BaseDBTest{
     @Test
     public void should_able_to_eager_loading_one_to_many_records_during_find_all() throws SQLException {
         User.includes(Article.class);
-        List<User> users = User.find_all();
+        List<User> users = User.find_all("id = 1");
         assertThat(newArrayList(users.get(0).articles), contains(articleA));
     }
 
     @Test
     public void should_able_to_find_object_by_where_clause() throws SQLException {
-        User userInDB = User.where("email = 'a@a.a'");
+        User userInDB = User.find_first("email = 'a@a.a'");
         assertThat(userInDB, equalTo(userA));
     }
 
@@ -112,21 +108,28 @@ public class ModelTest extends BaseDBTest{
     @Test
     public void should_able_to_get_row_count_in_table() throws SQLException {
         int recordsCount = User.count();
-        assertThat(recordsCount, is(User.<User>find_all().size()));
+        assertThat(recordsCount, is(User.find_all().size()));
     }
 
     @Test
     public void should_able_to_delete_record_by_primary_key() throws ClassNotFoundException, IOException, SQLException {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
-        int rowDeleted = User.delete(1);
+        int rowDeleted = userA.delete();
         assertThat(rowDeleted, equalTo(1));
+        assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
+    }
+
+    @Test
+    public void should_able_to_delete_object() throws SQLException {
+        assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
+        userA.delete();
         assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
     }
 
     @Test
     public void should_able_to_delete_multiple_records_by_primary_key_array() throws SQLException {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
-        User.delete(1, 3);
+        User.delete(new Object[] {1, 3});
         assertThat(User.<User>find_all(), containsInAnyOrder(userB));
     }
 
@@ -171,7 +174,7 @@ public class ModelTest extends BaseDBTest{
 
         misc.save();
 
-        Misc miscInDB = Misc.find(1);
+        Misc miscInDB = Misc.find_by_id(1);
         assertThat(miscInDB, equalTo(misc));
     }
 

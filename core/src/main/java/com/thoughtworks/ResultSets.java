@@ -13,8 +13,8 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class ResultSets {
-    private static NameGuesser guesser = new DefaultNameGuesser();              //TODO: use ioc
-    private static MetaDataProvider metaDataProvider = new MetaDataProvider();  //TODO: ioc
+    private static NameGuesser guesser = new DefaultNameGuesser();
+    private static MetaDataProvider metaDataProvider = new MetaDataProvider();
 
     public static <T extends Model> List<T> assembleInstanceListBy(ResultSet resultSet, String modelClassName) throws SQLException {
         List<T> objList = newArrayList();
@@ -27,6 +27,17 @@ public class ResultSets {
         return objList;
     }
 
+    public static <T> List<T> assembleInstanceListBy2(ResultSet resultSet, String modelClassName) throws SQLException {
+        List<T> objList = newArrayList();
+        List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();
+
+        while (resultSet.next()) {
+            objList.add(ResultSets.<T>assembleInstanceFrom2(resultSet, columns, modelClassName));
+        }
+
+        return objList;
+    }
+
     public static <T extends Model> T assembleInstanceBy(ResultSet resultSet, String modelClassName) throws SQLException {
         if (!resultSet.next()) {
             return null;
@@ -34,6 +45,49 @@ public class ResultSets {
 
         List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();
         return assembleInstanceFrom(resultSet, columns, modelClassName);
+    }
+
+    private static <T> T assembleInstanceFrom2(ResultSet resultSet, List<String> columns, String modelClassName) {
+        T instance = getNewInstance2(modelClassName);
+        Class<?> modelClass = instance.getClass();
+        Object columnValue = null;
+
+        for (String column : columns) {
+            try {
+                columnValue = resultSet.getObject(column);
+                setFieldValue2(instance, column, columnValue, modelClass);
+            } catch (NoSuchFieldException e) {
+                try {
+                    setFieldValue2(instance, column, columnValue, modelClass.getSuperclass());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            } catch (Exception e) {
+            }
+        }
+
+        return instance;
+    }
+
+
+    private static <T> T getNewInstance2(String modelClassName) {
+        try {
+            return (T) Class.forName(modelClassName).newInstance();
+        } catch (InstantiationException e) {
+        } catch (IllegalAccessException e) {
+        } catch (ClassNotFoundException e) {
+        }
+
+        return null;
+    }
+
+    private static <T> void setFieldValue2(T instance, String column, Object columnValue, Class<?> modelClass) throws Exception {
+        try {
+            Field field = modelClass.getDeclaredField(guesser.getFieldName(column));
+            field.setAccessible(true);
+            field.set(instance, getTypedValue(columnValue, field.getType()));
+        } catch (IllegalAccessException e) {
+        }
     }
 
     private static <T extends Model> T assembleInstanceFrom(ResultSet resultSet, List<String> columns, String modelClassName) {

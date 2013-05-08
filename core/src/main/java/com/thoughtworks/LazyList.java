@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public class LazyList<T> implements List<T> {
+public class LazyList<T extends Model> implements List<T> {
     private static SqlComposer sqlComposer = new MySQLSqlComposer();
     private final String modelClassName;
     private final String criteria;
@@ -38,7 +38,7 @@ public class LazyList<T> implements List<T> {
         try {
             statement = DB.connection().createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
-            return ResultSets.assembleInstanceListBy2(resultSet, modelClassName);
+            return ResultSets.assembleInstanceListBy(resultSet, modelClassName);
         } catch (Exception e) {
             throw new SQLRuntimeException(e);
         } finally {

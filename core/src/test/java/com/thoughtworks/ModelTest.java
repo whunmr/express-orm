@@ -80,9 +80,15 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_eager_loading_one_to_many_records_during_find_all() throws SQLException {
+    public void should_able_to_eager_loading_during_find_all() throws SQLException {
         User.includes(Article.class);
-        List<User> users = User.find_all("id = 1");
+        List<User> users = User.find_all().includes(Article.class);
+        assertThat(newArrayList(users.get(0).articles), contains(articleA));
+    }
+
+    @Test
+    public void should_able_to_eager_loading_during_find_all_with_criteria() throws SQLException {
+        List<User> users = User.find_all("id = 1").includes(Article.class);
         assertThat(newArrayList(users.get(0).articles), contains(articleA));
     }
 

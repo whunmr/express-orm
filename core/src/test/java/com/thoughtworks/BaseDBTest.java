@@ -51,7 +51,10 @@ public class BaseDBTest {
     }
 
     @After
-    public void tearDown() throws ClassNotFoundException, IOException, SQLException {
-        DB.connection().rollback();
+    public void tearDown() {
+        try {
+            DB.connection().rollback();
+        } catch (SQLException e) {
+        }
     }
 }

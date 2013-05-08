@@ -1,29 +1,25 @@
 package com.thoughtworks.metadata;
 
-import com.thoughtworks.DB;
-import com.thoughtworks.util.SqlUtil;
+import com.thoughtworks.query.ORMException;
+import com.thoughtworks.query.QueryResult;
+import com.thoughtworks.query.QueryUtil;
 
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.SQLException;
 
 public class MetaDataProvider {
     public static final String META_DATE_QUERY = "SELECT * FROM %s LIMIT 1";
 
     public ModelMetaData getMetaDataOf(String tableName) {
-        //TODO: add cache
         String metaDataQuery = String.format(META_DATE_QUERY, tableName);
-        Statement statement = null;
+        QueryResult queryResult = QueryUtil.getQueryResult(metaDataQuery);
 
         try {
-            statement = DB.connection().createStatement();
-            ResultSet resultSet = statement.executeQuery(metaDataQuery);
-            return new ModelMetaData(resultSet.getMetaData());
-        } catch (Exception e) {
-            e.printStackTrace();
+            ModelMetaData modelMetaData = new ModelMetaData(queryResult.getResultSet().getMetaData());
+            return modelMetaData;
+        } catch (SQLException e) {
+            throw new ORMException(e);
         } finally {
-            SqlUtil.close(statement);
+            queryResult.close();
         }
-
-        return null;
     }
 }

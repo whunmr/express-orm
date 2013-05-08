@@ -1,9 +1,6 @@
 package com.thoughtworks;
 
-import com.thoughtworks.fixture.Article;
-import com.thoughtworks.fixture.DayEnum;
-import com.thoughtworks.fixture.Misc;
-import com.thoughtworks.fixture.User;
+import com.thoughtworks.fixture.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,14 +30,14 @@ public class ModelTest extends BaseDBTest{
     }
 
     @After
-    public void tearDown() throws ClassNotFoundException, IOException, SQLException {
+    public void tearDown() {
         super.tearDown();
         User.delete_all();
         Article.delete_all();
     }
 
     @Test
-    public void should_able_to_save_object_to_table() throws SQLException {
+    public void should_able_to_save_object_to_table() {
         User user = createUser("Z", "z@z.z");
         User savedUser = user.save();
         assertThat(savedUser, is(sameInstance(user)));
@@ -48,7 +45,7 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_update_object_by_save_method() throws SQLException {
+    public void should_able_to_update_object_by_save_method() {
         userA.email = "newA@newA.newA";
 
         userA.save();
@@ -58,7 +55,7 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_find_all_records_by_empty_where_clause() throws SQLException {
+    public void should_able_to_find_all_records_by_empty_where_clause() {
         List<User> users = User.find_all();
         assertThat(users, containsInAnyOrder(userA, userB, userC));
     }
@@ -74,51 +71,50 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_find_all_one_to_many_records_of_instance() throws SQLException {
+    public void should_able_to_find_all_one_to_many_records_of_instance() {
         List<Article> articlesOfUserA = userA.find_all(Article.class);
         assertThat(articlesOfUserA, containsInAnyOrder(articleA));
     }
 
     @Test
-    public void should_able_to_eager_loading_during_find_all() throws SQLException {
-        User.includes(Article.class);
+    public void should_able_to_eager_loading_during_find_all() {
         List<User> users = User.find_all().includes(Article.class);
         assertThat(newArrayList(users.get(0).articles), contains(articleA));
     }
 
     @Test
-    public void should_able_to_eager_loading_during_find_all_with_criteria() throws SQLException {
+    public void should_able_to_eager_loading_during_find_all_with_criteria() {
         List<User> users = User.find_all("id = 1").includes(Article.class);
         assertThat(newArrayList(users.get(0).articles), contains(articleA));
     }
 
     @Test
-    public void should_able_to_find_object_by_where_clause() throws SQLException {
+    public void should_able_to_find_object_by_where_clause() {
         User userInDB = User.find_first("email = 'a@a.a'");
         assertThat(userInDB, equalTo(userA));
     }
 
     @Test
-    public void should_able_to_find_record_object_by_sql() throws SQLException {
+    public void should_able_to_find_record_object_by_sql() {
         User userInDB = User.find_by_sql("SELECT * FROM users WHERE email = 'a@a.a'");
         assertThat(userInDB, equalTo(userA));
     }
 
     @Test
-    public void should_able_to_select_columns_of_record_by_sql() throws SQLException {
+    public void should_able_to_select_columns_of_record_by_sql() {
         User userInDB = User.find_by_sql("SELECT email FROM users WHERE email = 'a@a.a'");
         assertThat(userInDB.firstName, is(nullValue()));
         assertThat(userInDB.email, is(userA.email));
     }
 
     @Test
-    public void should_able_to_get_row_count_in_table() throws SQLException {
+    public void should_able_to_get_row_count_in_table() {
         int recordsCount = User.count();
         assertThat(recordsCount, is(User.find_all().size()));
     }
 
     @Test
-    public void should_able_to_delete_record_by_primary_key() throws ClassNotFoundException, IOException, SQLException {
+    public void should_able_to_delete_record_by_primary_key() {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
         int rowDeleted = userA.delete();
         assertThat(rowDeleted, equalTo(1));
@@ -126,36 +122,34 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_delete_object() throws SQLException {
+    public void should_able_to_delete_object() {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
         userA.delete();
         assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
     }
 
     @Test
-    public void should_able_to_delete_multiple_records_by_primary_key_array() throws SQLException {
+    public void should_able_to_delete_multiple_records_by_primary_key_array() {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
         User.delete(new Object[] {1, 3});
         assertThat(User.<User>find_all(), containsInAnyOrder(userB));
     }
 
     @Test
-    public void should_able_to_delete_record_by_where_criteria() throws SQLException {
+    public void should_able_to_delete_record_by_where_criteria() {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
         User.delete_all("email = 'a@a.a'");
         assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
     }
 
     @Test
-    public void should_able_to_delete_all_records_by_empty_where_criteria() throws SQLException {
+    public void should_able_to_delete_all_records_by_empty_where_criteria() {
         User.delete_all();
         assertThat(User.count(), is(0));
     }
 
-    /////////////////////////////////////////////////////////
-
     @Test
-    public void should_able_to_mapping_primitive_members_to_db_columns() throws SQLException {
+    public void should_able_to_mapping_primitive_members_to_db_columns() {
         truncateTable("miscs");
         Misc misc = new Misc();
         misc.boolValue = true;
@@ -182,6 +176,33 @@ public class ModelTest extends BaseDBTest{
 
         Misc miscInDB = Misc.find_by_id(1);
         assertThat(miscInDB, equalTo(misc));
+    }
+
+    @Test
+    public void should_able_to_rollback_transaction_when_error_occurs() throws SQLException {
+        try {
+            new DummyService().saveUserInTransactionAndExceptionOccurs(createUser("Y", "y@y.y"));
+        } catch (Exception e) {
+
+            reconnect_database_to_avoid_seeing_staled_data();
+
+            Boolean userSaveRollBacked = User.find_first("first_name = 'Y'") == null;
+            assertThat(userSaveRollBacked, is(true));
+        }
+    }
+
+    @Test
+    public void should_able_to_commit_transaction_when_no_error_occurs() throws SQLException {
+        new DummyService().saveUserInTransactionAndNoExceptionOccurs(createUser("Y", "y@y.y"));
+
+        reconnect_database_to_avoid_seeing_staled_data();
+
+        Boolean transactionAutoCommitted = User.find_first("first_name = 'Y'") != null;
+        assertThat(transactionAutoCommitted, is(true));
+    }
+
+    private void reconnect_database_to_avoid_seeing_staled_data() throws SQLException {
+        DB.connection().close();
     }
 
     private User createUser(String firstName, String email) {

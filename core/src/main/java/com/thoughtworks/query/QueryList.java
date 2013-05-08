@@ -1,10 +1,11 @@
-package com.thoughtworks;
+package com.thoughtworks.query;
 
+import com.thoughtworks.DB;
+import com.thoughtworks.Model;
 import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.naming.NameGuesser;
 import com.thoughtworks.sql.MySQLSqlComposer;
 import com.thoughtworks.sql.SqlComposer;
-import com.thoughtworks.util.SqlUtil;
 
 import java.lang.reflect.*;
 import java.sql.ResultSet;
@@ -18,7 +19,7 @@ import static com.google.common.collect.Sets.newHashSet;
 
 public class QueryList<T extends Model> implements List<T> {
     private static SqlComposer sqlComposer = new MySQLSqlComposer();
-    static NameGuesser guesser = new DefaultNameGuesser();
+    private static NameGuesser guesser = new DefaultNameGuesser();
     private final Class modelClass;
     private final String modelClassName;
     private String criteria;
@@ -38,7 +39,7 @@ public class QueryList<T extends Model> implements List<T> {
     private void queryDBIfNeed() {
         if (records == null) {
             String sql = sqlComposer.getSelectWithWhereSQL(modelClassName, criteria);
-            records = executeObjectListQuery(modelClassName, sql);
+            records = QueryUtil.executeObjectListQuery(modelClassName, sql);
             doEagerLoadingIfNeed(records, modelClass);
         }
     }
@@ -166,35 +167,22 @@ public class QueryList<T extends Model> implements List<T> {
         return field;
     }
 
-    static <T extends Model> List<T> executeObjectListQuery(Class modelClass, String sql) {
+    public static <T extends Model> List<T> executeObjectListQuery(Class modelClass, String sql) {
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
             return ResultSets.assembleInstanceListBy(resultSet, modelClass.getName());
         } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+            throw new ORMException(e);
         } finally {
-            SqlUtil.close(statement);
+            QueryUtil.close(statement);
         }
     }
 
     public <E extends Model> QueryList<E> includes(Class<? extends Model> eagerLoadClass) {
         eagerLoadClasses.add(eagerLoadClass);
         return (QueryList<E>) this;
-    }
-
-    private List<T> executeObjectListQuery(String modelClassName, String sql) {
-        Statement statement = null;
-        try {
-            statement = DB.connection().createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            return ResultSets.assembleInstanceListBy(resultSet, modelClassName);
-        } catch (Exception e) {
-            throw new SQLRuntimeException(e);
-        } finally {
-            SqlUtil.close(statement);
-        }
     }
 
     @Override

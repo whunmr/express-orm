@@ -1,8 +1,7 @@
 package com.thoughtworks;
 
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
 import java.util.Properties;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,4 +30,5 @@ public class DB {
 
         return connection.get();
     }
+
 }

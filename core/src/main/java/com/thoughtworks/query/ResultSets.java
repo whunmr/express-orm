@@ -1,6 +1,7 @@
-package com.thoughtworks;
+package com.thoughtworks.query;
 
 import com.expressioc.utility.ClassUtility;
+import com.thoughtworks.Model;
 import com.thoughtworks.metadata.MetaDataProvider;
 import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.naming.NameGuesser;
@@ -27,9 +28,13 @@ public class ResultSets {
         return objList;
     }
 
-    public static <T extends Model> T assembleInstanceBy(ResultSet resultSet, String modelClassName) throws SQLException {
-        if (!resultSet.next()) {
-            return null;
+    public static <T extends Model> T assembleInstanceBy(ResultSet resultSet, String modelClassName) {
+        try {
+            if (!resultSet.next()) {
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new ORMException(e);
         }
 
         List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();

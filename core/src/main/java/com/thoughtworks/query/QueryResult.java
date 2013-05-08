@@ -1,7 +1,5 @@
 package com.thoughtworks.query;
 
-import com.thoughtworks.util.SqlUtil;
-
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -19,7 +17,7 @@ public class QueryResult {
     }
 
     public void close() {
-        SqlUtil.close(resultSet);
-        SqlUtil.close(statement);
+        QueryUtil.close(resultSet);
+        QueryUtil.close(statement);
     }
 }

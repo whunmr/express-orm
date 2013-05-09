@@ -42,6 +42,20 @@ public class MySQLSqlComposer implements SqlComposer {
         return getWhereSQL(modelClassName, criteria, "SELECT * FROM %s");
     }
 
+    @Override
+    public String getSelectWithWhereSQL(String modelClassName, String criteria, Integer limit, Integer offset) {
+        String sql = getSelectWithWhereSQL(modelClassName, criteria);
+        if (limit != null) {
+            sql = String.format("%s LIMIT %s", sql, limit);
+        }
+
+        if (offset != null) {
+            sql = String.format("%s OFFSET %s", sql, offset);
+        }
+
+        return sql;
+    }
+
     private String getWhereSQL(String modelClassName, String criteria, String basicSQL) {
         String selectAllSQL = String.format(basicSQL, guesser.getTableName(modelClassName));
         if (Strings.isNullOrEmpty(criteria)) {

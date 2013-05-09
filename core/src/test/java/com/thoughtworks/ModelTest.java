@@ -61,6 +61,18 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
+    public void should_able_to_support_limit_in_find_all() {
+        List<User> users = User.find_all().limit(1);
+        assertThat(users, containsInAnyOrder(userA));
+    }
+
+    @Test
+    public void should_able_to_support_offset_in_find_all() {
+        List<User> users = User.find_all().limit(2).offset(1);
+        assertThat(users, containsInAnyOrder(userB, userC));
+    }
+
+    @Test
     public void should_able_to_find_object_in_table_by_primary_key() throws ClassNotFoundException, IOException, SQLException {
         truncateTable("users");
         User user = createUser("A", "a@a.a").save();

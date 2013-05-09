@@ -25,6 +25,8 @@ public class QueryList<T extends Model> implements List<T> {
     private String criteria;
     private Set<Class<? extends Model>> eagerLoadClasses = newHashSet();
     private List<T> records;
+    private Integer limit;
+    private Integer offset;
 
     public QueryList(Class modelClass, String criteria) {
         this.modelClass = modelClass;
@@ -38,7 +40,7 @@ public class QueryList<T extends Model> implements List<T> {
 
     private void queryDBIfNeed() {
         if (records == null) {
-            String sql = sqlComposer.getSelectWithWhereSQL(modelClassName, criteria);
+            String sql = sqlComposer.getSelectWithWhereSQL(modelClassName, criteria, limit, offset);
             records = QueryUtil.executeObjectListQuery(modelClassName, sql);
             doEagerLoadingIfNeed(records, modelClass);
         }
@@ -310,5 +312,15 @@ public class QueryList<T extends Model> implements List<T> {
     @Override
     public void clear() {
         throw new UnsupportedOperationException();
+    }
+
+    public <E extends Model> QueryList<E> limit(int limit) {
+        this.limit = limit;
+        return (QueryList<E>) this;
+    }
+
+    public <E extends Model> QueryList<E> offset(int offset) {
+        this.offset = offset;
+        return (QueryList<E>) this;
     }
 }

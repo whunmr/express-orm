@@ -11,6 +11,8 @@ public interface SqlComposer {
 
     String getSelectWithWhereSQL(String modelClassName, String criteria);
 
+    String getSelectWithWhereSQL(String modelClassName, String criteria, Integer limit, Integer offset);
+
     String getDeleteSQL(String modelClassName, String criteria);
 
     String getCountSQL(String modelClassName);

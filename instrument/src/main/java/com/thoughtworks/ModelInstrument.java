@@ -3,10 +3,12 @@ package com.thoughtworks;
 import javassist.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 public class ModelInstrument implements ClassFileTransformer {
     public static final String MODEL_CLASS = "com/thoughtworks/Model";
@@ -14,12 +16,22 @@ public class ModelInstrument implements ClassFileTransformer {
     private static final String SET_AUTOCOMMIT_TO_FALSE = "try {com.thoughtworks.DB.connection().setAutoCommit(false);} catch (java.sql.SQLException e) {e.printStackTrace();}";
     private static final String COMMIT_TRANSACTION = "try {com.thoughtworks.DB.connection().commit();} catch (java.sql.SQLException e) {e.printStackTrace();}";
     private static final String CATCH_EXCEPTION_AND_ROLLBACK = "} catch (java.lang.Exception e) {try {com.thoughtworks.DB.connection().rollback();} catch (java.sql.SQLException e1) {} throw new RuntimeException(e);}";
+    private static String transactional_class_pattern;
 
     public static void premain(String agentArgument, Instrumentation instrumentation) {
         instrumentation.addTransformer(new ModelInstrument());
         try {
             transactionalAnnotationClass = Class.forName("com.thoughtworks.Transactional");
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        InputStream inputStream = ModelInstrument.class.getResourceAsStream("/config/database.properties");
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+            transactional_class_pattern = (String)properties.get("transactional_class_pattern");
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -43,7 +55,7 @@ public class ModelInstrument implements ClassFileTransformer {
             e.printStackTrace();
         }
 
-        if (className.equals("com/thoughtworks/fixture/DummyService")) { //input the user's package
+        if (className.matches(transactional_class_pattern)) {
             try {
                 CtClass serviceClass = pool.get(className.replaceAll("/", "."));
                 CtMethod[] modelMethods = serviceClass.getDeclaredMethods();

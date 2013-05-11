@@ -1,3 +1,2 @@
 include(":core")
 include(":instrument")
-include(":demo")

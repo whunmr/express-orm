@@ -20,8 +20,8 @@ import static com.google.common.collect.Maps.newHashMap;
 
 public class MySQLSqlComposer implements SqlComposer {
     public static final String ID = "id";
-    private MetaDataProvider metaDataProvider = new MetaDataProvider(); //TODO: ioc
-    private NameGuesser guesser = new DefaultNameGuesser();             //TODO: ioc
+    private MetaDataProvider metaDataProvider = new MetaDataProvider();
+    private NameGuesser guesser = new DefaultNameGuesser();
 
     public String getInsertSQL(Model model) {
         ModelMetaData metaData = metaDataProvider.getMetaDataOf(model.getTableName());

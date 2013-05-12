@@ -45,7 +45,7 @@ public class LegacyModelTest extends BaseDBTest {
     }
 
     @Test
-    public void should_able_to_support_limit_in_find_all() {
+    public void should_able_to_reveal_database_column_name_through_field_annotation_for_legacy_code() {
         List<LegacyUser> users = LegacyUser.find_all().limit(1);
         assertThat(users, containsInAnyOrder(userA));
     }

@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.fixture.User;
 import com.thoughtworks.naming.DefaultNameGuesser;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,9 +30,9 @@ public class DefaultNameGuesserTest {
 
     @Test
     public void should_convert_to_correct_field_name_from_table_column_name() {
-        assertThat(guesser.getFieldName("email"), is("email"));
-        assertThat(guesser.getFieldName("first_name"), is("firstName"));
-        assertThat(guesser.getFieldName("last_name"), is("lastName"));
-        assertThat(guesser.getFieldName("f_name"), is("fName"));
+        assertThat(guesser.getFieldName(User.class, "email"), is("email"));
+        assertThat(guesser.getFieldName(User.class, "first_name"), is("firstName"));
+        assertThat(guesser.getFieldName(User.class, "last_name"), is("lastName"));
+        assertThat(guesser.getFieldName(User.class, "f_name"), is("fName"));
     }
 }

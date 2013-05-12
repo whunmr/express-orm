@@ -3,7 +3,7 @@ package com.thoughtworks.naming;
 public interface NameGuesser {
     String getTableName(String className);
 
-    String getFieldName(String columnName);
+    String getFieldName(Class<?> modelClass, String columnName);
 
     String getForeignKeyNameInDB(String modelClassName);
 

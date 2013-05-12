@@ -126,14 +126,6 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_delete_record_by_primary_key() {
-        assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
-        int rowDeleted = userA.delete();
-        assertThat(rowDeleted, equalTo(1));
-        assertThat(User.<User>find_all(), containsInAnyOrder(userB, userC));
-    }
-
-    @Test
     public void should_able_to_delete_object() {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
         userA.delete();

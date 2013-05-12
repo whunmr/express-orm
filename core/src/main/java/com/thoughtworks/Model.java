@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import com.thoughtworks.annotation.Table;
 import com.thoughtworks.naming.DefaultNameGuesser;
 import com.thoughtworks.naming.NameGuesser;
 import com.thoughtworks.query.QueryList;
@@ -74,6 +75,11 @@ public class Model {
     }
 
     public String getTableName() {
+        Table tableAnnotation = this.getClass().getAnnotation(Table.class);
+        if (tableAnnotation != null) {
+            return tableAnnotation.value();
+        }
+
         return guesser.getTableName(getClass().getSimpleName());
     }
 

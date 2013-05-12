@@ -1,9 +1,13 @@
 package com.thoughtworks.fixture;
 
 import com.thoughtworks.Model;
+import com.thoughtworks.annotation.Column;
+import com.thoughtworks.annotation.Table;
 
+@Table("users")
 public class LegacyUser extends Model {
-    public String firstName;
+    @Column("first_name")
+    public String __firstName;
     public String email;
     public Article[] articles;
 
@@ -15,14 +19,14 @@ public class LegacyUser extends Model {
         User user = (User) o;
 
         if (email != null ? !email.equals(user.email) : user.email != null) return false;
-        if (firstName != null ? !firstName.equals(user.firstName) : user.firstName != null) return false;
+        if (__firstName != null ? !__firstName.equals(user.firstName) : user.firstName != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = firstName != null ? firstName.hashCode() : 0;
+        int result = __firstName != null ? __firstName.hashCode() : 0;
         result = 31 * result + (email != null ? email.hashCode() : 0);
         return result;
     }

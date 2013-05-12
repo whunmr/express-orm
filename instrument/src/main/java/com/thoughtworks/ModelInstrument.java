@@ -21,7 +21,7 @@ public class ModelInstrument implements ClassFileTransformer {
     public static void premain(String agentArgument, Instrumentation instrumentation) {
         instrumentation.addTransformer(new ModelInstrument());
         try {
-            transactionalAnnotationClass = Class.forName("com.thoughtworks.Transactional");
+            transactionalAnnotationClass = Class.forName("com.thoughtworks.annotation.Transactional");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

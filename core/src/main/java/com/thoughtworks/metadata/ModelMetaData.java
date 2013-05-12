@@ -7,13 +7,17 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class ModelMetaData {
-    private final ResultSetMetaData metaData;
+    private List<String> columnNames;
 
     public ModelMetaData(ResultSetMetaData metaData) {
-        this.metaData = metaData;
+        columnNames = getColumnNamesFrom(metaData);
     }
 
     public List<String> getColumnNames() {
+        return columnNames;
+    }
+
+    private List<String> getColumnNamesFrom(ResultSetMetaData metaData) {
         List<String> columns= newArrayList();
 
         try {

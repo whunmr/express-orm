@@ -1,6 +1,7 @@
 package com.thoughtworks.fixture;
 
-import com.thoughtworks.Transactional;
+
+import com.thoughtworks.annotation.Transactional;
 
 public class DummyService {
 

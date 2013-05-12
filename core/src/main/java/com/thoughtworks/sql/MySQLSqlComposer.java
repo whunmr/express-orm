@@ -156,7 +156,8 @@ public class MySQLSqlComposer implements SqlComposer {
 
     private Object getFieldValue(Model model, String columnName) {
         try {
-            Field field = model.getClass().getDeclaredField(guesser.getFieldName(columnName));
+            String fieldName = guesser.getFieldName(model.getClass(), columnName);
+            Field field = model.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             return field.get(model);
         } catch (NoSuchFieldException e) {

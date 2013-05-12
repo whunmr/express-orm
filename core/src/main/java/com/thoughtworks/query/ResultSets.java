@@ -66,7 +66,7 @@ public class ResultSets {
 
     private static <T extends Model> void setFieldValue(T instance, String column, Object columnValue, Class<?> modelClass) throws Exception {
         try {
-            Field field = modelClass.getDeclaredField(guesser.getFieldName(column));
+            Field field = modelClass.getDeclaredField(guesser.getFieldName(modelClass, column));
             field.setAccessible(true);
             field.set(instance, getTypedValue(columnValue, field.getType()));
         } catch (IllegalAccessException e) {

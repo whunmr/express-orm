@@ -1,5 +1,7 @@
 package com.thoughtworks.naming;
 
+import com.thoughtworks.annotation.Table;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultNameGuesser implements NameGuesser {
@@ -7,6 +9,15 @@ public class DefaultNameGuesser implements NameGuesser {
     @Override
     public String getTableName(String className) {
         checkNotNull(className);
+
+        try {
+            Class<?> clazz = Class.forName(className);
+            Table tableAnnotation = clazz.getAnnotation(Table.class);
+            if (tableAnnotation != null) {
+                return tableAnnotation.value();
+            }
+        } catch (ClassNotFoundException e) {
+        }
 
         String classNameWithoutPackage = className.replaceAll("(.*\\.)", "");
         return underscore(classNameWithoutPackage) + "s";
@@ -17,8 +28,10 @@ public class DefaultNameGuesser implements NameGuesser {
     }
 
     @Override
-    public String getFieldName(String columnName) {
+    public String getFieldName(Class<?> modelClass, String columnName) {
         checkNotNull(columnName);
+
+
 
         String[] parts = columnName.split("_");
         if (parts.length == 1) {

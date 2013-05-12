@@ -22,13 +22,14 @@ public class QueryList<T extends Model> implements List<T> {
     private static SqlComposer sqlComposer = new MySQLSqlComposer();
     private static NameGuesser guesser = new DefaultNameGuesser();
     private final Class modelClass;
+
     private final String modelClassName;
+
     private String criteria;
     private Set<Class<? extends Model>> eagerLoadClasses = newHashSet();
     private List<T> records;
     private Integer limit;
     private Integer offset;
-
     public QueryList(Class modelClass, String criteria) {
         this.modelClass = modelClass;
         this.modelClassName = modelClass.getName();
@@ -37,6 +38,10 @@ public class QueryList<T extends Model> implements List<T> {
 
     public QueryList(Class modelClassName) {
         this(modelClassName, "");
+    }
+
+    public String getModelClassName() {
+        return modelClassName;
     }
 
     private void queryDBIfNeed() {

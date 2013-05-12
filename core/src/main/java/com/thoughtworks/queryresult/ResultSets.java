@@ -1,10 +1,11 @@
-package com.thoughtworks.query;
+package com.thoughtworks.queryresult;
 
 import com.expressioc.utility.ClassUtility;
 import com.thoughtworks.Model;
+import com.thoughtworks.query.ORMException;
 import com.thoughtworks.metadata.MetaDataProvider;
-import com.thoughtworks.naming.DefaultNameGuesser;
-import com.thoughtworks.naming.NameGuesser;
+import com.thoughtworks.query.naming.DefaultNameGuesser;
+import com.thoughtworks.query.naming.NameGuesser;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;

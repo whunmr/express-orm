@@ -1,4 +1,4 @@
-package com.thoughtworks.sql;
+package com.thoughtworks.query.sql;
 
 import com.thoughtworks.Model;
 

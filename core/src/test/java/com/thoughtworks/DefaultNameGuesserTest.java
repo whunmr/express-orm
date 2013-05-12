@@ -1,7 +1,7 @@
 package com.thoughtworks;
 
 import com.thoughtworks.fixture.User;
-import com.thoughtworks.naming.DefaultNameGuesser;
+import com.thoughtworks.query.naming.DefaultNameGuesser;
 import org.junit.Before;
 import org.junit.Test;
 

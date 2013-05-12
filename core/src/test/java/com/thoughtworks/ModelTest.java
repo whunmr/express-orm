@@ -133,6 +133,12 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
+    public void should_able_to_clear_primary_value_after_deleted() {
+        userA.delete();
+        assertThat(userA.getId(), is(0));
+    }
+
+    @Test
     public void should_able_to_delete_multiple_records_by_primary_key_array() {
         assertThat(User.<User>find_all(), containsInAnyOrder(userA, userB, userC));
         User.delete(new Object[] {1, 3});

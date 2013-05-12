@@ -1,4 +1,4 @@
-package com.thoughtworks.naming;
+package com.thoughtworks.query.naming;
 
 import com.thoughtworks.annotation.Column;
 import com.thoughtworks.annotation.Table;

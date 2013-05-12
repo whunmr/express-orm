@@ -2,10 +2,11 @@ package com.thoughtworks.query;
 
 import com.thoughtworks.DB;
 import com.thoughtworks.Model;
-import com.thoughtworks.naming.DefaultNameGuesser;
-import com.thoughtworks.naming.NameGuesser;
-import com.thoughtworks.sql.MySQLSqlComposer;
-import com.thoughtworks.sql.SqlComposer;
+import com.thoughtworks.query.naming.DefaultNameGuesser;
+import com.thoughtworks.query.naming.NameGuesser;
+import com.thoughtworks.query.sql.MySQLSqlComposer;
+import com.thoughtworks.query.sql.SqlComposer;
+import com.thoughtworks.queryresult.ResultSets;
 
 import java.lang.reflect.*;
 import java.sql.ResultSet;

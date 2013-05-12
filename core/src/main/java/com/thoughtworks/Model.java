@@ -1,12 +1,12 @@
 package com.thoughtworks;
 
 import com.thoughtworks.annotation.Table;
-import com.thoughtworks.naming.DefaultNameGuesser;
-import com.thoughtworks.naming.NameGuesser;
+import com.thoughtworks.query.naming.DefaultNameGuesser;
+import com.thoughtworks.query.naming.NameGuesser;
 import com.thoughtworks.query.QueryList;
 import com.thoughtworks.query.QueryUtil;
-import com.thoughtworks.sql.MySQLSqlComposer;
-import com.thoughtworks.sql.SqlComposer;
+import com.thoughtworks.query.sql.MySQLSqlComposer;
+import com.thoughtworks.query.sql.SqlComposer;
 
 import java.util.List;
 
@@ -66,6 +66,7 @@ public class Model {
 
     public int delete() {
         String deleteInSQL = sqlComposer.getDeleteInSQL(modelName(), this.getId());
+        this.id = 0;
         return QueryUtil.executeUpdate(deleteInSQL);
     }
 

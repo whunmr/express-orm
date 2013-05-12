@@ -1,14 +1,14 @@
-package com.thoughtworks.sql;
+package com.thoughtworks.query.sql;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.thoughtworks.Model;
 import com.thoughtworks.metadata.MetaDataProvider;
 import com.thoughtworks.metadata.ModelMetaData;
-import com.thoughtworks.naming.DefaultNameGuesser;
-import com.thoughtworks.naming.NameGuesser;
+import com.thoughtworks.query.naming.DefaultNameGuesser;
+import com.thoughtworks.query.naming.NameGuesser;
+import com.thoughtworks.Model;
 
 import java.lang.reflect.Field;
 import java.util.List;

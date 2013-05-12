@@ -2,6 +2,8 @@ package com.thoughtworks.query;
 
 import com.thoughtworks.DB;
 import com.thoughtworks.Model;
+import com.thoughtworks.queryresult.QueryResult;
+import com.thoughtworks.queryresult.ResultSets;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -1,4 +1,6 @@
-package com.thoughtworks.query;
+package com.thoughtworks.queryresult;
+
+import com.thoughtworks.query.QueryUtil;
 
 import java.sql.ResultSet;
 import java.sql.Statement;

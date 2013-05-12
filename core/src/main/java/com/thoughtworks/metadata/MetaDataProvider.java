@@ -1,7 +1,7 @@
 package com.thoughtworks.metadata;
 
 import com.thoughtworks.query.ORMException;
-import com.thoughtworks.query.QueryResult;
+import com.thoughtworks.queryresult.QueryResult;
 import com.thoughtworks.query.QueryUtil;
 
 import java.sql.SQLException;

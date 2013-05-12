@@ -7,4 +7,6 @@ project (':core') {
     test {
         jvmArgs '-javaagent:../instrument/build/libs/instrument.jar'
     }
+
+    jar.baseName = 'express-orm'
 }

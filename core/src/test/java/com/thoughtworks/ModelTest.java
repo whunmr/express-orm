@@ -73,7 +73,7 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
-    public void should_able_to_find_object_in_table_by_primary_key() throws ClassNotFoundException, IOException, SQLException {
+    public void should_able_to_find_object_in_table_by_primary_key() {
         truncateTable("users");
         User user = createUser("A", "a@a.a").save();
 
@@ -158,63 +158,6 @@ public class ModelTest extends BaseDBTest{
     public void should_able_to_delete_all_records_by_empty_where_criteria() {
         User.delete_all();
         assertThat(User.count(), is(0));
-    }
-
-    @Test
-    public void should_able_to_mapping_primitive_members_to_db_columns() {
-        truncateTable("miscs");
-        Misc misc = new Misc();
-        misc.boolValue = true;
-        misc.charValue = 'c';
-        misc.byteValue = 4;
-        misc.shortValue = 8;
-        misc.integerValue = 15;
-        misc.longValue = 16L;
-        misc.floatValue = 23.0f;
-        misc.doubleValue = 42.0d;
-        misc.stringValue = "LOST";
-
-        misc.primitiveIntValue = 4;
-        misc.primitiveDoubleValue = 8;
-        misc.primitiveFloatValue = 15.0f;
-        misc.primitiveBooleanValue = true;
-        misc.primitiveShortValue = 23;
-        misc.primitiveLongValue = 42L;
-        misc.primitiveByteValue = 0;
-
-        misc.day = DayEnum.MONDAY;
-
-        misc.save();
-
-        Misc miscInDB = Misc.find_by_id(1);
-        assertThat(miscInDB, equalTo(misc));
-    }
-
-    @Test
-    public void should_able_to_rollback_transaction_when_error_occurs() throws SQLException {
-        try {
-            new DummyService().saveUserInTransactionAndExceptionOccurs(createUser("Y", "y@y.y"));
-        } catch (Exception e) {
-
-            reconnect_database_to_avoid_seeing_staled_data();
-
-            Boolean userSaveRollBacked = User.find_first("first_name = 'Y'") == null;
-            assertThat(userSaveRollBacked, is(true));
-        }
-    }
-
-    @Test
-    public void should_able_to_commit_transaction_when_no_error_occurs() throws SQLException {
-        new DummyService().saveUserInTransactionAndNoExceptionOccurs(createUser("Y", "y@y.y"));
-
-        reconnect_database_to_avoid_seeing_staled_data();
-
-        Boolean transactionAutoCommitted = User.find_first("first_name = 'Y'") != null;
-        assertThat(transactionAutoCommitted, is(true));
-    }
-
-    private void reconnect_database_to_avoid_seeing_staled_data() throws SQLException {
-        DB.connection().close();
     }
 
     private User createUser(String firstName, String email) {

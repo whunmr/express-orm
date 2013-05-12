@@ -117,7 +117,6 @@ public class ModelInstrument implements ClassFileTransformer {
             body.append("return result;\n");
         }
         body.append(CATCH_EXCEPTION_AND_ROLLBACK + "}");
-        System.out.println(body);
         return body;
     }
 

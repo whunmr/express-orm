@@ -55,7 +55,6 @@ public class QueryUtil {
         Statement statement = null;
         try {
             statement = DB.connection().createStatement();
-            System.out.println(sql);
             return statement.executeUpdate(sql);
         } catch (SQLException e) {
             throw new ORMException(e);

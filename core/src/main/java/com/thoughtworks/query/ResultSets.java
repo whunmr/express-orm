@@ -82,10 +82,6 @@ public class ResultSets {
             return !columnValue.toString().equals("0");
         }
 
-        if (clazz.equals(Character.class) || clazz.equals(char.class)) {
-            return Character.valueOf(((String)columnValue).charAt(0));
-        }
-
         return ClassUtility.assembleParameter(columnValue.toString(), clazz);
     }
 

@@ -11,6 +11,7 @@ import com.thoughtworks.query.naming.NameGuesser;
 import com.thoughtworks.Model;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -115,6 +116,22 @@ public class MySQLSqlComposer implements SqlComposer {
         });
 
         return String.format(" %s IN ( %s )", foreignKey, Joiner.on(",").join(ids));
+    }
+
+    @Override
+    public String getWhereSQLFromParams(String modelClassName, String... params) {
+        String select = String.format("SELECT * from %s WHERE ", guesser.getTableName(modelClassName));
+        StringBuilder sql = new StringBuilder(select);
+
+        ArrayList<String> parts = newArrayList();
+        for (int i = 0; i < params.length; i += 2) {
+            String column = params[i];
+            String value = params[i+1];
+
+            parts.add(String.format(" %s = \"%s\"", column, value));
+        }
+
+        return sql.append(Joiner.on(" AND ").join(parts)).toString();
     }
 
     private Map<String, String> buildValuesMap(Model model) {

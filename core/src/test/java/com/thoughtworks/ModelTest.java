@@ -55,6 +55,20 @@ public class ModelTest extends BaseDBTest{
     }
 
     @Test
+    public void should_able_to_create_object_if_find_failed() {
+        User user = User.find_or_create("first_name", "X", "email", "x@x.x");
+        assertThat(user.firstName, is("X"));
+        assertThat(user.email, is("x@x.x"));
+    }
+
+    @Test
+    public void should_able_to_find_existing_object_by_find_or_create() {
+        User user = User.find_or_create("first_name", "A", "email", "a@a.a");
+        assertThat(user.firstName, is("A"));
+        assertThat(user.email, is("a@a.a"));
+    }
+
+    @Test
     public void should_able_to_find_all_records_by_empty_where_clause() {
         List<User> users = User.find_all();
         assertThat(users, containsInAnyOrder(userA, userB, userC));

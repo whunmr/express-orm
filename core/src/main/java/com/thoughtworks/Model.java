@@ -1,12 +1,13 @@
 package com.thoughtworks;
 
 import com.thoughtworks.annotation.Table;
-import com.thoughtworks.query.naming.DefaultNameGuesser;
-import com.thoughtworks.query.naming.NameGuesser;
 import com.thoughtworks.query.QueryList;
 import com.thoughtworks.query.QueryUtil;
+import com.thoughtworks.query.naming.DefaultNameGuesser;
+import com.thoughtworks.query.naming.NameGuesser;
 import com.thoughtworks.query.sql.MySQLSqlComposer;
 import com.thoughtworks.query.sql.SqlComposer;
+import com.thoughtworks.queryresult.ResultSets;
 
 import java.util.List;
 
@@ -113,5 +114,21 @@ public class Model {
 
     private static String modelName() {
         return getModelClass().getName();
+    }
+
+    public static <T extends Model> T find_or_create(String... params){
+        if (params.length == 0 || (params.length % 2) != 0) {
+            throw new IllegalArgumentException("invalid parameters, much be even and more than more parameters");
+        }
+
+        String sql = sqlComposer.getWhereSQLFromParams(modelName(), params);
+        T model = QueryUtil.executeSingleObjectQuery(modelName(), sql);
+
+        if (model != null) {
+            return model;
+        }
+
+        model = ResultSets.assembleInstanceBy(modelName(), params);
+        return model.save();
     }
 }

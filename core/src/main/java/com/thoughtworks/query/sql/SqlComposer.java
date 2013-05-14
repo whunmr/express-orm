@@ -26,4 +26,6 @@ public interface SqlComposer {
     String getTheManysSQLInOne2ManyAssociation(Class theManyClass, Model model);
 
     String getParentIdInCriteria(String modelClassName, List<Model> resultModels);
+
+    String getWhereSQLFromParams(String modelClassName, String... params);
 }

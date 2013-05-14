@@ -1,6 +1,8 @@
 package com.thoughtworks.queryresult;
 
 import com.expressioc.utility.ClassUtility;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.thoughtworks.Model;
 import com.thoughtworks.query.ORMException;
 import com.thoughtworks.metadata.MetaDataProvider;
@@ -10,6 +12,7 @@ import com.thoughtworks.query.naming.NameGuesser;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -23,13 +26,14 @@ public class ResultSets {
         List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();
 
         while (resultSet.next()) {
-            objList.add(ResultSets.<T>assembleInstanceFrom(resultSet, columns, modelClassName));
+            List<Object> values = getColumnValuesFrom(resultSet, columns);
+            objList.add(ResultSets.<T>assembleInstanceFrom(values, columns, modelClassName));
         }
 
         return objList;
     }
 
-    public static <T extends Model> T assembleInstanceBy(ResultSet resultSet, String modelClassName) {
+    public static <T extends Model> T assembleInstanceBy(final ResultSet resultSet, String modelClassName) {
         try {
             if (!resultSet.next()) {
                 return null;
@@ -39,18 +43,36 @@ public class ResultSets {
         }
 
         List<String> columns = metaDataProvider.getMetaDataOf(guesser.getTableName(modelClassName)).getColumnNames();
-        return assembleInstanceFrom(resultSet, columns, modelClassName);
+
+        List<Object> values = getColumnValuesFrom(resultSet, columns);
+
+        return assembleInstanceFrom(values, columns, modelClassName);
+    }
+
+    private static List<Object> getColumnValuesFrom(final ResultSet resultSet, List<String> columns) {
+        return Lists.transform(columns, new Function<String, Object>() {
+            @Override
+            public Object apply(String column) {
+                try {
+                    return resultSet.getObject(column);
+                } catch (SQLException e) {
+                    return null;
+                }
+            }
+        });
     }
 
 
-    private static <T extends Model> T assembleInstanceFrom(ResultSet resultSet, List<String> columns, String modelClassName) {
+    private static <T extends Model> T assembleInstanceFrom(List<Object> columnValues, List<String> columns, String modelClassName) {
         T instance = getNewInstance(modelClassName);
         Class<? extends Model> modelClass = instance.getClass();
+        String column = null;
         Object columnValue = null;
 
-        for (String column : columns) {
+        for (int i = 0; i < columns.size(); i++) {
             try {
-                columnValue = resultSet.getObject(column);
+                column = columns.get(i);
+                columnValue = columnValues.get(i);
                 setFieldValue(instance, column, columnValue, modelClass);
             } catch (NoSuchFieldException e) {
                 try {
@@ -95,5 +117,17 @@ public class ResultSets {
         }
 
         return null;
+    }
+
+    public static <T extends Model> T assembleInstanceBy(String modelClassName, String... params) {
+        ArrayList<String> columns = newArrayList();
+        ArrayList<Object> columnValues = newArrayList();
+
+        for (int i = 0; i < params.length; i += 2) {
+            columns.add(params[i]);
+            columnValues.add(params[i + 1]);
+        }
+
+        return assembleInstanceFrom(columnValues, columns, modelClassName);
     }
 }

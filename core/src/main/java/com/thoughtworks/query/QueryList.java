@@ -174,7 +174,7 @@ public class QueryList<T extends Model> implements List<T> {
     }
 
     private static Field getAccessibleField(Class eagerModelClass, String foreignKeyFieldName) throws NoSuchFieldException {
-        Field field = eagerModelClass.getField(foreignKeyFieldName);
+        Field field = eagerModelClass.getDeclaredField(foreignKeyFieldName);
         field.setAccessible(true);
         return field;
     }

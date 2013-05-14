@@ -53,6 +53,10 @@ public class QueryList<T extends Model> implements List<T> {
     }
 
     public <T extends Model> List<T> doEagerLoadingIfNeed(List<T> resultModels, Class resultModelClass) {
+        if (resultModels.isEmpty()) {
+            return resultModels;
+        }
+
         String parentIdInCriteria = sqlComposer.getParentIdInCriteria(modelClassName, (List<Model>) resultModels);
             for (Class<? extends Model> eagerClass : eagerLoadClasses) {
                 Class<Model> eagerClazz = (Class<Model>) eagerClass;
